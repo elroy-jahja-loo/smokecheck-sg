@@ -21,7 +21,8 @@
     "sbom": "npm sbom --omit=dev --sbom-format=cyclonedx > sbom.cdx.json",
     "sync:datagov": "tsx scripts/sync-datagov.ts",
     "smoke:test": "tsx scripts/smoke-tests.ts",
-    "security:secrets": "node scripts/check-secrets.mjs"
+    "security:secrets": "node scripts/check-secrets.mjs",
+    "og:generate": "node scripts/generate-og-image.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1084.0",
@@ -69,6 +70,7 @@
     "@types/react-dom": "^19.2.0",
     "eslint": "^9.30.0",
     "eslint-config-next": "16.2.12",
+    "sharp": "^0.35.0",
     "tsc-alias": "^1.9.0",
     "tsx": "^4.20.3",
     "typescript": "^5.8.0"
