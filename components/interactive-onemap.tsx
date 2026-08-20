@@ -7,6 +7,7 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.vectorgrid";
 import { Circle, CircleMarker, MapContainer, Marker, Polygon, Polyline, Popup, TileLayer, ZoomControl, useMap, useMapEvents } from "react-leaflet";
 import { useI18n } from "@/lib/i18n/i18n-provider";
+import { trackEvent } from "@/lib/analytics/client";
 import { isSingaporeCoordinate } from "@/lib/onemap/onemap-validation";
 
 type MapFeature = {
@@ -463,14 +464,14 @@ const InteractiveMapLayer = memo(function InteractiveMapLayer({
           bubblingMouseEvents={false}
           eventHandlers={feature.count > 1
             ? { click: () => map.flyTo([feature.lat, feature.lng], Math.min(zoom + 2, 18), { duration: 0.35 }) }
-            : { click: () => onDesignatedAreaSelect?.({ name: feature.name, lat: feature.lat, lng: feature.lng }) }}
+            : { click: () => { trackEvent("designated_area_selected", { area_source: feature.community ? "community" : "official" }); onDesignatedAreaSelect?.({ name: feature.name, lat: feature.lat, lng: feature.lng }); } }}
         >
           <Popup>
             {feature.count > 1 ? `${feature.count} ${t("map.clusterNearby")}` : (
               <div className="map-popup-action">
                 <strong>{feature.name}</strong>
                 <span>{feature.community ? t("map.communityAreaPopup") : t("map.designatedAreaPopup")}</span>
-                {!feature.community ? <button type="button" onClick={() => onDesignatedAreaRoute?.({ name: feature.name, lat: feature.lat, lng: feature.lng })}>{t("map.getDirections")}</button> : null}
+                {!feature.community ? <button type="button" onClick={() => { trackEvent("directions_requested", { destination_source: "official_map_marker" }); onDesignatedAreaRoute?.({ name: feature.name, lat: feature.lat, lng: feature.lng }); }}>{t("map.getDirections")}</button> : null}
               </div>
             )}
           </Popup>
@@ -481,12 +482,12 @@ const InteractiveMapLayer = memo(function InteractiveMapLayer({
         return coordinate ? (
           <Fragment key={feature.id}>
             <Circle center={[coordinate.lat, coordinate.lng]} radius={feature.radiusM ?? 10} pathOptions={{ color: "#005baa", fillColor: "#005baa", weight: 1, fillOpacity: 0.1 }} />
-            <Marker position={[coordinate.lat, coordinate.lng]} icon={communityDsaIcon} bubblingMouseEvents={false} eventHandlers={{ click: () => onDesignatedAreaSelect?.({ name: feature.name, lat: coordinate.lat, lng: coordinate.lng }) }}>
+            <Marker position={[coordinate.lat, coordinate.lng]} icon={communityDsaIcon} bubblingMouseEvents={false} eventHandlers={{ click: () => { trackEvent("designated_area_selected", { area_source: "community" }); onDesignatedAreaSelect?.({ name: feature.name, lat: coordinate.lat, lng: coordinate.lng }); } }}>
               <Popup>
                 <div className="map-popup-action">
                   <strong>{feature.name}</strong>
                   <span>{t("map.communityAreaPopup")}</span>
-                  <button type="button" onClick={() => onDesignatedAreaRoute?.({ name: feature.name, lat: coordinate.lat, lng: coordinate.lng })}>{t("map.getDirections")}</button>
+                  <button type="button" onClick={() => { trackEvent("directions_requested", { destination_source: "community_map_marker" }); onDesignatedAreaRoute?.({ name: feature.name, lat: coordinate.lat, lng: coordinate.lng }); }}>{t("map.getDirections")}</button>
                 </div>
               </Popup>
             </Marker>

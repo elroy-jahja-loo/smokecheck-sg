@@ -10,6 +10,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { LocationStatusChecker, type MapFeature } from "@/components/location-status-checker";
 import { PublicFooter } from "@/components/public-footer";
 import { sourceMetadata } from "@/data/prototype-data";
+import { trackEvent } from "@/lib/analytics/client";
 import { useI18n } from "@/lib/i18n/i18n-provider";
 import type { ReactNode } from "react";
 
@@ -61,7 +62,7 @@ export function HomePageContent({ signageMode, initialQuery, initialLat, initial
               <strong>{t("community.bannerTitle")}</strong>
               <p>{t("community.bannerBody")}</p>
             </div>
-            <button type="button" className="live-primary-button" onClick={() => setAddOpen(true)}>{t("community.bannerButton")}</button>
+            <button type="button" className="live-primary-button" onClick={() => { trackEvent("community_overlay_opened", { entry_surface: "home" }); setAddOpen(true); }}>{t("community.bannerButton")}</button>
           </section>
 
           <ErrorBoundary>

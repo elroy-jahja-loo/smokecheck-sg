@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { AccessibilityControls } from "@/components/accessibility-controls";
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
 import { SkipToContent } from "@/components/skip-link";
@@ -132,6 +133,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           </div>
           <AccessibilityControls />
           <ServiceWorkerRegistration />
+          <Analytics />
         </I18nProvider>
       </body>
     </html>

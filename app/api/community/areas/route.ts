@@ -3,6 +3,7 @@ import { getPostgisPool, hasPostgisConfig } from "@/lib/db/postgis";
 import { badRequest, enforceRateLimit, jsonResponse } from "@/lib/http";
 import { observeApiRequest } from "@/lib/observability/logging";
 import { appendCorsHeaders, preflightResponse, requireJsonRequest } from "@/lib/security";
+import { track } from "@vercel/analytics/server";
 
 export const dynamic = "force-dynamic";
 
@@ -23,14 +24,21 @@ export function OPTIONS(request: Request) {
 export async function POST(request: Request) {
   const startedAt = Date.now();
   const jsonError = requireJsonRequest(request);
-  if (jsonError) return appendCorsHeaders(jsonError, request, corsOptions);
+  if (jsonError) {
+    await trackCommunityOutcome("invalid_content_type");
+    return appendCorsHeaders(jsonError, request, corsOptions);
+  }
 
   const limited = await enforceRateLimit(request, "community-submit", 5, 3600);
-  if (limited) return appendCorsHeaders(limited, request, corsOptions);
+  if (limited) {
+    await trackCommunityOutcome("rate_limited");
+    return appendCorsHeaders(limited, request, corsOptions);
+  }
 
   const body = await request.json().catch(() => undefined);
   const payload = parseCommunityPayload(body);
   if (!payload) {
+    await trackCommunityOutcome("invalid_payload");
     return appendCorsHeaders(
       badRequest("Expected up to 10 smoking area points and up to 10 no-smoking area outlines inside Singapore prototype bounds."),
       request,
@@ -39,6 +47,7 @@ export async function POST(request: Request) {
   }
 
   if (!hasPostgisConfig()) {
+    await trackCommunityOutcome("unavailable", payload);
     return appendCorsHeaders(
       jsonResponse({ error: "unavailable", message: "Community submissions are temporarily unavailable." }, { status: 503 }),
       request,
@@ -76,6 +85,7 @@ export async function POST(request: Request) {
   } catch {
     await client.query("rollback").catch(() => undefined);
     observeApiRequest("/api/community/areas", startedAt, { failed: true });
+    await trackCommunityOutcome("failed", payload);
     return appendCorsHeaders(
       jsonResponse({ error: "submission_failed", message: "Could not store the community areas. Please try again." }, { status: 500 }),
       request,
@@ -87,7 +97,17 @@ export async function POST(request: Request) {
 
   await cacheAdapter.invalidatePrefix("viewport:v1:");
   observeApiRequest("/api/community/areas", startedAt, { addedDesignated, addedProhibited });
+  await trackCommunityOutcome("succeeded", payload);
   return appendCorsHeaders(jsonResponse({ added: { designatedAreas: addedDesignated, prohibitedZones: addedProhibited } }), request, corsOptions);
+}
+
+async function trackCommunityOutcome(outcome: "failed" | "invalid_content_type" | "invalid_payload" | "rate_limited" | "succeeded" | "unavailable", payload?: CommunitySubmitPayload) {
+  const designatedCount = payload?.designatedAreas.length ?? 0;
+  const prohibitedCount = payload?.prohibitedZones.length ?? 0;
+  const submissionKind = designatedCount > 0 && prohibitedCount > 0 ? "mixed" : designatedCount > 0 ? "smoking" : prohibitedCount > 0 ? "no-smoking" : "unknown";
+  const totalCount = designatedCount + prohibitedCount;
+  const itemCountBucket = totalCount === 0 ? "0" : totalCount === 1 ? "1" : totalCount <= 3 ? "2-3" : "4-plus";
+  await track("community_submission_completed", { outcome, submission_kind: submissionKind, item_count_bucket: itemCountBucket }).catch(() => undefined);
 }
 
 function parseCommunityPayload(body: unknown): CommunitySubmitPayload | undefined {

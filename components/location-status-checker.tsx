@@ -7,6 +7,7 @@ import { Badge } from "@/components/badge";
 import { Button } from "@/components/button";
 import { MapLegend } from "@/components/map-legend";
 import { designatedAreas } from "@/data/prototype-data";
+import { trackEvent } from "@/lib/analytics/client";
 import { useI18n } from "@/lib/i18n/i18n-provider";
 import type { DesignatedArea, LocationResult, SourceMetadata } from "@/lib/types";
 import type { BottomSheetSnapState } from "@/lib/ui/bottom-sheet-snap";
@@ -42,6 +43,8 @@ type OneMapSearchCandidate = {
 type SearchResponse = {
   candidates: OneMapSearchCandidate[];
 };
+
+type StatusInputSource = "gps" | "map" | "search" | "shared" | "signage";
 
 type ReverseGeocodeResponse = {
   result: {
@@ -180,14 +183,16 @@ export function LocationStatusChecker({
     } catch {
       setSelectedSource(t("sourceLabel.mapReverseUnavailable"));
     }
-    await runStatusLookup({ lat, lng, selectedAddress: address });
+    await runStatusLookup({ lat, lng, selectedAddress: address, inputSource: "map" });
   }
 
   function useMyLocation() {
     setError(undefined);
     setRouteResponse(undefined);
     setSelectedDesignatedArea(undefined);
+    trackEvent("geolocation_requested", { request_purpose: "status_check" });
     if (!navigator.geolocation) {
+      trackEvent("geolocation_failed", { outcome: "unavailable", request_purpose: "status_check" });
       setError(t("errors.locationUnavailable"));
       return;
     }
@@ -195,6 +200,7 @@ export function LocationStatusChecker({
     setIsLoading(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        trackEvent("geolocation_resolved", { request_purpose: "status_check" });
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
         const accuracy = Math.round(position.coords.accuracy);
@@ -204,6 +210,7 @@ export function LocationStatusChecker({
         void reverseGeocodeAndCheck(lat, lng, accuracy);
       },
       () => {
+        trackEvent("geolocation_failed", { outcome: "denied_or_unavailable", request_purpose: "status_check" });
         setIsLoading(false);
         setError(t("errors.locationDenied"));
       },
@@ -212,6 +219,7 @@ export function LocationStatusChecker({
   }
 
   const handleMapSelect = useCallback((lat: number, lng: number) => {
+    trackEvent("map_point_selected");
     void selectMapPoint(lat, lng);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -268,9 +276,14 @@ export function LocationStatusChecker({
       if (!response.ok) throw new Error(response.status === 429 ? t("errors.rateLimited") : t("errors.searchUnavailable"));
       const payload = (await response.json()) as SearchResponse;
       setSearchResults(payload.candidates);
+      trackEvent("location_search_completed", {
+        outcome: payload.candidates.length > 0 ? "results" : "empty",
+        candidate_count_bucket: payload.candidates.length === 0 ? "0" : payload.candidates.length <= 3 ? "1-3" : "4-plus",
+      });
       if (payload.candidates.length === 0) setError(t("errors.noResults"));
     } catch (caught) {
       setSearchResults([]);
+      trackEvent("location_search_completed", { outcome: "error" });
       setError(caught instanceof Error ? caught.message : t("errors.searchUnavailable"));
     } finally {
       setIsLoading(false);
@@ -278,13 +291,14 @@ export function LocationStatusChecker({
   }
 
   function selectSearchResult(candidate: OneMapSearchCandidate) {
+    trackEvent("search_result_selected");
     setSelectedSource(`${t("sourceLabel.oneMapSelectedResult")}: ${candidate.label}`);
     setGpsAccuracyM(undefined);
     setRouteStart(undefined);
     setSelectedDesignatedArea(undefined);
     setSearchResults([]);
     setMapAutoFocusKey(`search:${candidate.id}`);
-    void runStatusLookup({ lat: candidate.lat, lng: candidate.lng, selectedAddress: candidate.address });
+    void runStatusLookup({ lat: candidate.lat, lng: candidate.lng, selectedAddress: candidate.address, inputSource: "search" });
   }
 
   async function shareCurrentLocation() {
@@ -299,15 +313,18 @@ export function LocationStatusChecker({
     url.searchParams.set("lng", result.lng.toFixed(6));
     url.searchParams.set("q", result.selectedAddress.slice(0, 80));
     const shareText = `${t("map.shareGuidance")} ${result.selectedAddress}: ${getStatusLabel(result.status, t)}`;
+    const usedNativeShare = typeof navigator.share === "function";
     try {
-      if (navigator.share) {
+      if (usedNativeShare) {
         await navigator.share({ title: t("map.shareTitle"), text: shareText, url: url.toString() });
       } else {
         await navigator.clipboard.writeText(url.toString());
       }
       setShareStatus(t("result.shareCopied"));
+      trackEvent("location_share_completed", { method: usedNativeShare ? "native" : "clipboard" });
     } catch {
       setShareStatus(t("result.shareCancelled"));
+      trackEvent("location_share_cancelled");
     }
   }
 
@@ -331,23 +348,25 @@ export function LocationStatusChecker({
     }
 
     if (options.setAsRouteStart) setRouteStart({ lat, lng, label: address, gpsAccuracyM: accuracy });
-    await runStatusLookup({ lat, lng, gpsAccuracyM: accuracy, selectedAddress: address });
+    await runStatusLookup({ lat, lng, gpsAccuracyM: accuracy, selectedAddress: address, inputSource: "gps" });
   }
 
-  async function runStatusLookup(input: { lat: number; lng: number; gpsAccuracyM?: number; selectedAddress?: string }) {
+  async function runStatusLookup(input: { lat: number; lng: number; gpsAccuracyM?: number; selectedAddress?: string; inputSource: StatusInputSource }) {
     setIsLoading(true);
     setError(undefined);
     setRouteResponse(undefined);
+    const { inputSource, ...statusInput } = input;
     try {
       const response = await fetch("/api/geospatial/status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(input),
+        body: JSON.stringify(statusInput),
       });
       if (!response.ok) throw new Error(t("errors.statusLookupFailed"));
       const payload = (await response.json()) as StatusResponse;
       setStatusResponse(payload);
       setOfflineMode(false);
+      trackEvent("status_check_completed", { input_source: inputSource, outcome: payload.result.status });
     } catch {
       setOfflineMode(true);
       const cached = await loadCachedRulesFallback();
@@ -357,9 +376,11 @@ export function LocationStatusChecker({
         setStatusResponse({ result: fallback, privacy: { precisePublicLocationStored: false, note: t("result.offlineNote") } });
         setCachedRules(cached);
         setError(undefined);
+        trackEvent("status_check_completed", { input_source: inputSource, outcome: "offline_fallback" });
       } else {
         setStatusResponse(undefined);
         setError(t("errors.offlineNoCache"));
+        trackEvent("status_check_completed", { input_source: inputSource, outcome: "failed" });
       }
     } finally {
       setIsLoading(false);
@@ -385,7 +406,7 @@ export function LocationStatusChecker({
     const timer = window.setTimeout(() => {
       setSelectedSource(signageMode ? t("sourceLabel.qrLandingCoordinate") : t("sourceLabel.sharedMapCoordinate"));
       setMapAutoFocusKey(`shared:${lat.toFixed(6)},${lng.toFixed(6)}`);
-      void runStatusLookup({ lat, lng, selectedAddress: signageMode ? t("sourceLabel.qrLocation") : t("sourceLabel.sharedLocation") });
+      void runStatusLookup({ lat, lng, selectedAddress: signageMode ? t("sourceLabel.qrLocation") : t("sourceLabel.sharedLocation"), inputSource: signageMode ? "signage" : "shared" });
     }, 0);
     return () => window.clearTimeout(timer);
     // Only hydrate initial URL state once on mount.
@@ -395,6 +416,7 @@ export function LocationStatusChecker({
   function getWalkingRoute() {
     const destination = selectedDesignatedArea ?? result?.nearestDesignatedArea;
     if (!destination) return;
+    trackEvent("directions_requested", { destination_source: selectedDesignatedArea ? "selected_area" : "nearest_result" });
     if (!routeStart) {
       requestRouteStartThenRoute(destination);
       return;
@@ -440,6 +462,7 @@ export function LocationStatusChecker({
       () => {
         setIsLoading(false);
         setError(t("errors.routeDenied"));
+        trackEvent("directions_completed", { outcome: "location_denied" });
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
     );
@@ -460,9 +483,11 @@ export function LocationStatusChecker({
       });
       if (!response.ok) throw new Error(response.status === 429 ? t("errors.routeRateLimited") : t("errors.routeUnavailable"));
       setRouteResponse((await response.json()) as RouteResponse);
+      trackEvent("directions_completed", { outcome: "success" });
     } catch (caught) {
       setRouteResponse(undefined);
       setError(caught instanceof Error ? caught.message : t("errors.routeTemporarilyUnavailable"));
+      trackEvent("directions_completed", { outcome: "failed" });
     } finally {
       setIsLoading(false);
     }

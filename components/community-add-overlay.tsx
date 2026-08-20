@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 
 import { useI18n } from "@/lib/i18n/i18n-provider";
+import { trackEvent } from "@/lib/analytics/client";
 import { defaultCenter } from "@/lib/geospatial/viewport-bbox";
 
 const InteractiveOneMap = dynamic(
@@ -131,6 +132,7 @@ export function CommunityAddOverlay({ open, onClose, vectorTileBaseUrl, vectorTi
 
   const finishShape = useCallback(() => {
     if (ring.length < 3) return;
+    trackEvent("community_polygon_completed", { vertex_count_bucket: ring.length <= 8 ? "3-8" : ring.length <= 16 ? "9-16" : "17-plus" });
     setPolygons((current) => (current.length >= MAX_ITEMS ? current : [...current, { id: crypto.randomUUID(), ring: [...ring, ring[0]] }]));
     setRing([]);
   }, [ring]);
@@ -155,6 +157,12 @@ export function CommunityAddOverlay({ open, onClose, vectorTileBaseUrl, vectorTi
 
   async function submit() {
     if (submitting || !hasAnything || ring.length > 0) return;
+    const submissionKind = points.length > 0 && polygons.length > 0 ? "mixed" : points.length > 0 ? "smoking" : "no-smoking";
+    const submissionCount = points.length + polygons.length;
+    trackEvent("community_submission_attempted", {
+      submission_kind: submissionKind,
+      item_count_bucket: submissionCount === 1 ? "1" : submissionCount <= 3 ? "2-3" : "4-plus",
+    });
     setSubmitting(true);
     setError(undefined);
     try {
@@ -170,6 +178,7 @@ export function CommunityAddOverlay({ open, onClose, vectorTileBaseUrl, vectorTi
       window.location.reload();
     } catch {
       setSubmitting(false);
+      trackEvent("community_submission_failed", { outcome: "request_failed", submission_kind: submissionKind });
       setError(t("community.error"));
     }
   }
@@ -185,10 +194,10 @@ export function CommunityAddOverlay({ open, onClose, vectorTileBaseUrl, vectorTi
     <div className="community-add-overlay" role="dialog" aria-modal="true" aria-label={t("community.addTitle")}>
       <header className="community-add-overlay__header">
         <div className="community-add-overlay__tabs" role="tablist" aria-label={t("community.addTitle")}>
-          <button type="button" role="tab" aria-selected={mode === "smoking"} className={mode === "smoking" ? "is-active" : undefined} onClick={() => setMode("smoking")}>
+          <button type="button" role="tab" aria-selected={mode === "smoking"} className={mode === "smoking" ? "is-active" : undefined} onClick={() => { trackEvent("community_mode_selected", { submission_kind: "smoking" }); setMode("smoking"); }}>
             {t("community.addSmoking")}
           </button>
-          <button type="button" role="tab" aria-selected={mode === "no-smoking"} className={mode === "no-smoking" ? "is-active" : undefined} onClick={() => setMode("no-smoking")}>
+          <button type="button" role="tab" aria-selected={mode === "no-smoking"} className={mode === "no-smoking" ? "is-active" : undefined} onClick={() => { trackEvent("community_mode_selected", { submission_kind: "no-smoking" }); setMode("no-smoking"); }}>
             {t("community.addProhibited")}
           </button>
         </div>
