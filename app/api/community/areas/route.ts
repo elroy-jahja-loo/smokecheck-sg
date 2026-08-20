@@ -1,0 +1,130 @@
+import { cacheAdapter } from "@/lib/cache/cache-adapter";
+import { getPostgisPool, hasPostgisConfig } from "@/lib/db/postgis";
+import { badRequest, enforceRateLimit, jsonResponse } from "@/lib/http";
+import { observeApiRequest } from "@/lib/observability/logging";
+import { appendCorsHeaders, preflightResponse, requireJsonRequest } from "@/lib/security";
+
+export const dynamic = "force-dynamic";
+
+const corsOptions = { methods: ["POST", "OPTIONS"] };
+
+type CommunitySubmitPayload = {
+  designatedAreas: { lat: number; lng: number }[];
+  prohibitedZones: { lat: number; lng: number }[][];
+};
+
+const MAX_POINTS_PER_KIND = 10;
+const MAX_ZONE_VERTICES = 64;
+
+export function OPTIONS(request: Request) {
+  return preflightResponse(request, corsOptions);
+}
+
+export async function POST(request: Request) {
+  const startedAt = Date.now();
+  const jsonError = requireJsonRequest(request);
+  if (jsonError) return appendCorsHeaders(jsonError, request, corsOptions);
+
+  const limited = await enforceRateLimit(request, "community-submit", 5, 3600);
+  if (limited) return appendCorsHeaders(limited, request, corsOptions);
+
+  const body = await request.json().catch(() => undefined);
+  const payload = parseCommunityPayload(body);
+  if (!payload) {
+    return appendCorsHeaders(
+      badRequest("Expected up to 10 smoking area points and up to 10 no-smoking area outlines inside Singapore prototype bounds."),
+      request,
+      corsOptions,
+    );
+  }
+
+  if (!hasPostgisConfig()) {
+    return appendCorsHeaders(
+      jsonResponse({ error: "unavailable", message: "Community submissions are temporarily unavailable." }, { status: 503 }),
+      request,
+      corsOptions,
+    );
+  }
+
+  const pool = getPostgisPool();
+  const client = await pool.connect();
+  let addedDesignated = 0;
+  let addedProhibited = 0;
+  try {
+    await client.query("begin");
+    for (const point of payload.designatedAreas) {
+      await client.query(
+        `insert into public.community_designated_areas (name, location, radius_m, verified)
+         values ('Community smoking area', extensions.st_setsrid(extensions.st_makepoint($1, $2), 4326)::extensions.geography, 10, false)`,
+        [point.lng, point.lat],
+      );
+      addedDesignated += 1;
+    }
+    for (const ring of payload.prohibitedZones) {
+      const closedRing = ring.length > 0 && (ring[0].lat !== ring[ring.length - 1].lat || ring[0].lng !== ring[ring.length - 1].lng)
+        ? [...ring, ring[0]]
+        : ring;
+      const geojson = JSON.stringify({ type: "Polygon", coordinates: [closedRing.map(({ lat, lng }) => [lng, lat])] });
+      await client.query(
+        `insert into public.community_prohibited_zones (name, geometry, verified)
+         values ('Community no-smoking area', extensions.st_geomfromgeojson($1)::extensions.geography, false)`,
+        [geojson],
+      );
+      addedProhibited += 1;
+    }
+    await client.query("commit");
+  } catch {
+    await client.query("rollback").catch(() => undefined);
+    observeApiRequest("/api/community/areas", startedAt, { failed: true });
+    return appendCorsHeaders(
+      jsonResponse({ error: "submission_failed", message: "Could not store the community areas. Please try again." }, { status: 500 }),
+      request,
+      corsOptions,
+    );
+  } finally {
+    client.release();
+  }
+
+  await cacheAdapter.invalidatePrefix("viewport:v1:");
+  observeApiRequest("/api/community/areas", startedAt, { addedDesignated, addedProhibited });
+  return appendCorsHeaders(jsonResponse({ added: { designatedAreas: addedDesignated, prohibitedZones: addedProhibited } }), request, corsOptions);
+}
+
+function parseCommunityPayload(body: unknown): CommunitySubmitPayload | undefined {
+  if (!body || typeof body !== "object") return undefined;
+  const raw = body as { designatedAreas?: unknown; prohibitedZones?: unknown };
+  if (!Array.isArray(raw.designatedAreas) || !Array.isArray(raw.prohibitedZones)) return undefined;
+  if (raw.designatedAreas.length === 0 && raw.prohibitedZones.length === 0) return undefined;
+  if (raw.designatedAreas.length > MAX_POINTS_PER_KIND || raw.prohibitedZones.length > MAX_POINTS_PER_KIND) return undefined;
+
+  const designatedAreas: { lat: number; lng: number }[] = [];
+  for (const entry of raw.designatedAreas) {
+    const point = parseCoordinate(entry);
+    if (!point) return undefined;
+    designatedAreas.push(point);
+  }
+
+  const prohibitedZones: { lat: number; lng: number }[][] = [];
+  for (const entry of raw.prohibitedZones) {
+    if (!Array.isArray(entry) || entry.length < 3 || entry.length > MAX_ZONE_VERTICES) return undefined;
+    const ring: { lat: number; lng: number }[] = [];
+    for (const vertex of entry) {
+      const point = parseCoordinate(vertex);
+      if (!point) return undefined;
+      ring.push(point);
+    }
+    if (new Set(ring.map((point) => `${point.lat.toFixed(6)}:${point.lng.toFixed(6)}`)).size < 3) return undefined;
+    prohibitedZones.push(ring);
+  }
+
+  return { designatedAreas, prohibitedZones };
+}
+
+function parseCoordinate(value: unknown): { lat: number; lng: number } | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const lat = Number((value as { lat?: unknown }).lat);
+  const lng = Number((value as { lng?: unknown }).lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return undefined;
+  if (lat < 1.1 || lat > 1.5 || lng < 103.5 || lng > 104.1) return undefined;
+  return { lat, lng };
+}

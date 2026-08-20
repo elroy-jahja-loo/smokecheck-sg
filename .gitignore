@@ -1,0 +1,51 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+*.tsbuildinfo
+
+# production
+build/
+.test-build/
+
+# generated local artifacts
+.local/
+screenshots/
+sbom.cdx.json
+.playwright-mcp/
+
+# local env files
+.env
+.env.*
+!.env.example
+!.env.local.example
+.env*.local
+
+# local agent/config files that may contain credentials
+opencode.json
+opencode.jsonc
+.opencode/
+.vercel/
+
+# private keys and certificates
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# macOS
+.DS_Store
+
+# Sentry Config File
+.env.sentry-build-plugin
+.vercel
+.git-archive-backup/

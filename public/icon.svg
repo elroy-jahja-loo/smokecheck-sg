@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="SmokeCheck SG">
+  <rect width="512" height="512" rx="72" fill="#004481"/>
+  <path d="M256 72 404 128v112c0 96-59 165-148 200-89-35-148-104-148-200V128l148-56Z" fill="#fff"/>
+  <path d="m180 252 50 50 106-112" fill="none" stroke="#087f5b" stroke-linecap="round" stroke-linejoin="round" stroke-width="34"/>
+</svg>

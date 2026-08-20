@@ -1,0 +1,17 @@
+.badge {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-sm);
+  padding: 0 var(--spacing-2);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.neutral { color: var(--color-muted); }
+.success { color: var(--color-success-green); }
+.danger { color: var(--color-danger-red); }
+.warning { color: #9c4700; }
+.blue { color: var(--color-primary); }
+.dark { color: var(--color-officer-muted); }

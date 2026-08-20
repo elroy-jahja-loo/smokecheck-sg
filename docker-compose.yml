@@ -1,0 +1,127 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smokecheck-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      - SMOKECHECK_ALLOWED_ORIGINS=${SMOKECHECK_ALLOWED_ORIGINS:-http://localhost:3000}
+      - USE_POSTGIS_DATA=${USE_POSTGIS_DATA:-true}
+      - POSTGIS_DATABASE_URL=${POSTGIS_DATABASE_URL:-}
+      - PGVECTOR_DATABASE_URL=${PGVECTOR_DATABASE_URL:-}
+      - REDIS_URL=${REDIS_URL:-}
+      - REDIS_TOKEN=${REDIS_TOKEN:-}
+      - QSTASH_URL=${QSTASH_URL:-}
+      - QSTASH_TOKEN=${QSTASH_TOKEN:-}
+      - QSTASH_CURRENT_SIGNING_KEY=${QSTASH_CURRENT_SIGNING_KEY:-}
+      - QSTASH_NEXT_SIGNING_KEY=${QSTASH_NEXT_SIGNING_KEY:-}
+      - ONEMAP_API_BASE_URL=${ONEMAP_API_BASE_URL:-https://www.onemap.gov.sg}
+      - ONEMAP_API_TOKEN=${ONEMAP_API_TOKEN:-}
+      - ONEMAP_EMAIL=${ONEMAP_EMAIL:-}
+      - ONEMAP_EMAIL_PASSWORD=${ONEMAP_EMAIL_PASSWORD:-}
+      - DATAGOV_API_BASE_URL=${DATAGOV_API_BASE_URL:-https://api-open.data.gov.sg}
+      - DATAGOV_API_KEY=${DATAGOV_API_KEY:-}
+      - DATAGOV_SYNC_INTERNAL_SECRET=${DATAGOV_SYNC_INTERNAL_SECRET:-}
+      - DATAGOV_DSA_DATASET_ID=${DATAGOV_DSA_DATASET_ID:-}
+      - DATAGOV_NSZ_DATASET_ID=${DATAGOV_NSZ_DATASET_ID:-}
+      - DATAGOV_NPARKS_NO_SMOKING_DATASET_ID=${DATAGOV_NPARKS_NO_SMOKING_DATASET_ID:-}
+      - BOT_PROTECTION_MODE=${BOT_PROTECTION_MODE:-turnstile}
+      - TURNSTILE_SECRET_KEY=${TURNSTILE_SECRET_KEY:-}
+      - NEXT_PUBLIC_TURNSTILE_SITE_KEY=${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN:-}
+      - SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN:-}
+      - SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT:-production}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      - OTEL_SERVICE_NAME=${OTEL_SERVICE_NAME:-smokecheck-sg}
+      - OBJECT_STORAGE_ENDPOINT=${OBJECT_STORAGE_ENDPOINT:-}
+      - OBJECT_STORAGE_REGION=${OBJECT_STORAGE_REGION:-}
+      - OBJECT_STORAGE_BUCKET=${OBJECT_STORAGE_BUCKET:-}
+      - OBJECT_STORAGE_ACCESS_KEY_ID=${OBJECT_STORAGE_ACCESS_KEY_ID:-}
+      - OBJECT_STORAGE_SECRET_ACCESS_KEY=${OBJECT_STORAGE_SECRET_ACCESS_KEY:-}
+      - SMOKECHECK_PUBLIC_GATE=${SMOKECHECK_PUBLIC_GATE:-open}
+      - SMOKECHECK_VECTOR_TILE_MODE=${SMOKECHECK_VECTOR_TILE_MODE:-}
+      - VECTOR_TILE_BASE_URL=${VECTOR_TILE_BASE_URL:-}
+      - SMOKECHECK_RAG_EMBEDDING_PROVIDER=${SMOKECHECK_RAG_EMBEDDING_PROVIDER:-deterministic}
+      - SMOKECHECK_OBJECT_STORAGE_MODE=${SMOKECHECK_OBJECT_STORAGE_MODE:-local}
+      - WORKER_INTERNAL_SECRET=${WORKER_INTERNAL_SECRET:-}
+      - ALERTING_WEBHOOK_URL=${ALERTING_WEBHOOK_URL:-}
+      - ENABLE_PGVECTOR_RAG=${ENABLE_PGVECTOR_RAG:-false}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - smokecheck
+
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: smokecheck-dev
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_APP_URL=http://localhost:3001
+      - SMOKECHECK_ALLOWED_ORIGINS=http://localhost:3001,http://127.0.0.1:3001
+      - USE_POSTGIS_DATA=${USE_POSTGIS_DATA:-true}
+      - POSTGIS_DATABASE_URL=${POSTGIS_DATABASE_URL:-}
+      - PGVECTOR_DATABASE_URL=${PGVECTOR_DATABASE_URL:-}
+      - REDIS_URL=${REDIS_URL:-}
+      - REDIS_TOKEN=${REDIS_TOKEN:-}
+      - ONEMAP_API_BASE_URL=${ONEMAP_API_BASE_URL:-https://www.onemap.gov.sg}
+      - ONEMAP_API_TOKEN=${ONEMAP_API_TOKEN:-}
+      - ONEMAP_EMAIL=${ONEMAP_EMAIL:-}
+      - ONEMAP_EMAIL_PASSWORD=${ONEMAP_EMAIL_PASSWORD:-}
+      - DATAGOV_API_BASE_URL=${DATAGOV_API_BASE_URL:-https://api-open.data.gov.sg}
+      - DATAGOV_API_KEY=${DATAGOV_API_KEY:-}
+      - DATAGOV_DSA_DATASET_ID=${DATAGOV_DSA_DATASET_ID:-}
+      - DATAGOV_NSZ_DATASET_ID=${DATAGOV_NSZ_DATASET_ID:-}
+      - DATAGOV_NPARKS_NO_SMOKING_DATASET_ID=${DATAGOV_NPARKS_NO_SMOKING_DATASET_ID:-}
+      - DATAGOV_SYNC_INTERNAL_SECRET=${DATAGOV_SYNC_INTERNAL_SECRET:-}
+      - BOT_PROTECTION_MODE=${BOT_PROTECTION_MODE:-off}
+      - TURNSTILE_SECRET_KEY=${TURNSTILE_SECRET_KEY:-}
+      - NEXT_PUBLIC_TURNSTILE_SITE_KEY=${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN:-}
+      - QSTASH_URL=${QSTASH_URL:-}
+      - QSTASH_TOKEN=${QSTASH_TOKEN:-}
+      - QSTASH_CURRENT_SIGNING_KEY=${QSTASH_CURRENT_SIGNING_KEY:-}
+      - QSTASH_NEXT_SIGNING_KEY=${QSTASH_NEXT_SIGNING_KEY:-}
+      - SMOKECHECK_PUBLIC_GATE=${SMOKECHECK_PUBLIC_GATE:-open}
+      - SMOKECHECK_VECTOR_TILE_MODE=${SMOKECHECK_VECTOR_TILE_MODE:-}
+      - WORKER_INTERNAL_SECRET=${WORKER_INTERNAL_SECRET:-}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    restart: unless-stopped
+    command: npm run dev
+    networks:
+      - smokecheck
+
+networks:
+  smokecheck:
+    driver: bridge

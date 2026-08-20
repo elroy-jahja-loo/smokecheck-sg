@@ -1,0 +1,76 @@
+{
+  "name": "smokecheck-sg",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "tsc --project tsconfig.test.json && tsc-alias --project tsconfig.test.json && node --test .test-build/lib/*.test.js .test-build/lib/**/*.test.js",
+    "verify:postcss-override": "npm audit --audit-level=moderate && npm ls postcss",
+    "acceptance:report": "node scripts/generate-acceptance-report.mjs",
+    "load:smokecheck": "node scripts/load-smokecheck.mjs",
+    "tiles:generate": "node scripts/generate-vector-tiles.mjs",
+    "geojson:export-community": "tsx scripts/export-community-geojson.ts",
+    "rag:ingest": "tsx scripts/ingest-rag.ts",
+    "sbom": "npm sbom --omit=dev --sbom-format=cyclonedx > sbom.cdx.json",
+    "sync:datagov": "tsx scripts/sync-datagov.ts",
+    "smoke:test": "tsx scripts/smoke-tests.ts",
+    "security:secrets": "node scripts/check-secrets.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1084.0",
+    "@mapbox/geojson-rewind": "^0.5.2",
+    "@opentelemetry/api": "^1.9.1",
+    "@sentry/nextjs": "^10.65.0",
+    "@upstash/qstash": "2.11.3",
+    "@vercel/otel": "^2.1.3",
+    "geojson-vt": "^4.0.3",
+    "leaflet": "^1.9.4",
+    "leaflet.vectorgrid": "^1.3.0",
+    "next": "16.2.12",
+    "opossum": "^10.0.0",
+    "pg": "^8.22.0",
+    "postcss": "8.5.25",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
+    "react-leaflet": "^5.0.0",
+    "vt-pbf": "^3.1.3",
+    "zod": "^4.4.3"
+  },
+  "overrides": {
+    "minimatch@3.1.5": {
+      "brace-expansion": "1.1.18"
+    },
+    "minimatch@10.0.0": {
+      "brace-expansion": "5.0.9"
+    },
+    "minimatch@10.2.0": {
+      "brace-expansion": "5.0.9"
+    },
+    "minimatch@10.2.5": {
+      "brace-expansion": "5.0.9"
+    },
+    "fast-uri": "4.1.2",
+    "postcss": "$postcss",
+    "sharp": "0.35.0"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.21",
+    "@types/node": "^22.20.1",
+    "@types/opossum": "^8.1.9",
+    "@types/pg": "^8.20.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "eslint": "^9.30.0",
+    "eslint-config-next": "16.2.12",
+    "tsc-alias": "^1.9.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.0"
+  }
+}

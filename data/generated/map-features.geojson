@@ -1,0 +1,75 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "dsa-orchard-demo",
+      "properties": {
+        "kind": "designated-area",
+        "name": "Orchard precinct designated area",
+        "sourceId": "datagov-discovery"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [103.8318, 1.3048]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "dsa-civic-demo",
+      "properties": {
+        "kind": "designated-area",
+        "name": "Civic district designated area",
+        "sourceId": "datagov-discovery"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [103.8521, 1.2931]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "zone-orchard-demo",
+      "properties": {
+        "kind": "prohibited-zone",
+        "name": "Orchard Road No Smoking Zone prototype boundary",
+        "sourceId": "nea-smoking-guidance",
+        "zoneType": "nparks_no_smoking_location"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [103.8288, 1.3017],
+            [103.8356, 1.3017],
+            [103.8356, 1.3072],
+            [103.8288, 1.3072],
+            [103.8288, 1.3017]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "zone-civic-shelter-demo",
+      "properties": {
+        "kind": "prohibited-zone",
+        "name": "Civic district covered walkway prototype zone",
+        "sourceId": "nea-smoking-guidance",
+        "zoneType": "nea_no_smoking_zone"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [103.8497, 1.2915],
+            [103.8542, 1.2915],
+            [103.8542, 1.2952],
+            [103.8497, 1.2952],
+            [103.8497, 1.2915]
+          ]
+        ]
+      }
+    }
+  ]
+}

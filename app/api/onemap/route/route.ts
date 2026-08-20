@@ -1,0 +1,34 @@
+import { badRequest, enforceRateLimit, jsonResponse } from "@/lib/http";
+import { observeApiRequest } from "@/lib/observability/logging";
+import { oneMapRoutingAdapter } from "@/lib/onemap/onemap-routing-adapter";
+import { OneMapSafeError } from "@/lib/onemap/onemap-types";
+import { parseWalkingRouteInput } from "@/lib/onemap/onemap-validation";
+import { appendCorsHeaders, preflightResponse, requireJsonRequest } from "@/lib/security";
+
+export const dynamic = "force-dynamic";
+
+const corsOptions = { methods: ["POST", "OPTIONS"] };
+
+export function OPTIONS(request: Request) {
+  return preflightResponse(request, corsOptions);
+}
+
+export async function POST(request: Request) {
+  const startedAt = Date.now();
+  const jsonError = requireJsonRequest(request);
+  if (jsonError) return appendCorsHeaders(jsonError, request, corsOptions);
+
+  const limited = await enforceRateLimit(request, "onemap-route", 30, 60);
+  if (limited) return appendCorsHeaders(limited, request, corsOptions);
+
+  try {
+    const input = parseWalkingRouteInput(await request.json().catch(() => undefined));
+    const result = await oneMapRoutingAdapter.getWalkingRoute(input);
+    observeApiRequest("/api/onemap/route", startedAt, { cacheHit: result.cache.hit, status: result.route.status, routeType: input.routeType });
+    return appendCorsHeaders(jsonResponse({ ...result, disclaimer: "This route supports compliance guidance only. Current law, physical signs, and NEA instructions prevail." }), request, corsOptions);
+  } catch (error) {
+    observeApiRequest("/api/onemap/route", startedAt, { error: error instanceof OneMapSafeError ? error.code : "validation" });
+    if (error instanceof OneMapSafeError) return appendCorsHeaders(jsonResponse({ error: error.code, message: error.message }, { status: error.status }), request, corsOptions);
+    return appendCorsHeaders(badRequest(error instanceof Error ? error.message : "Invalid walking route request."), request, corsOptions);
+  }
+}

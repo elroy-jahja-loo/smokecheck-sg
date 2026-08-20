@@ -1,0 +1,101 @@
+# SmokeCheck SG — Full content guide for AI assistants
+
+> SmokeCheck SG (https://smokecheck-sg.vercel.app) is a free Singapore smoking-rules checker and map. It shows where smoking is banned and where the nearest official designated smoking areas (DSAs) are, for any address in Singapore. Data sources: NEA Smoking Prohibition overview (last updated 18 August 2026), data.gov.sg Designated Smoking Areas dataset, OneMap. SmokeCheck SG is guidance, not legal advice. Physical signs and NEA instructions always prevail. It is not affiliated with NEA or any government agency.
+
+## Pages
+
+- Home map (https://smokecheck-sg.vercel.app/): search an address, use GPS, or tap the map. Shows no-smoking zones (red) and designated smoking areas (green), community-added smoking areas (marked unverified), and walking directions.
+- Smoking areas guide (https://smokecheck-sg.vercel.app/smoking-areas): where you can and can't smoke in Singapore, DSAs, yellow boxes, fines, FAQs.
+- Orchard Road yellow boxes (https://smokecheck-sg.vercel.app/orchard-road-smoking-areas): the Orchard Road No-Smoking Zone and its designated smoking areas.
+- Singapore smoking fines (https://smokecheck-sg.vercel.app/singapore-smoking-fines): all smoking-related fines and how to avoid them.
+- Changi Airport smoking areas (https://smokecheck-sg.vercel.app/changi-airport-smoking-areas): smoking rooms in Terminals 1–4.
+- Smoking rules FAQ (https://smokecheck-sg.vercel.app/rules): rule categories with Q&A.
+- Data sources (https://smokecheck-sg.vercel.app/sources): dataset provenance.
+
+## Where smoking is BANNED in Singapore (per NEA, August 2026)
+
+- Inside most buildings and public service vehicles, including common areas of residential buildings (corridors, void decks, lifts, stairwells).
+- Bus stops, bus shelters, bus poles — and within five metres of them.
+- Covered linkways, pedestrian overhead bridges, covered or underground walkways.
+- Playgrounds, exercise areas, swimming pools (and within five metres), sports stadia.
+- Parks, gardens and nature reserves under NParks; parks in HDB estates; reservoirs and ABC Waters sites; recreational beaches (including Changi, East Coast, West Coast, Sembawang, Pasir Ris, Coney Island, Punggol, Siloso, Palawan, Tanjong).
+- Hospitals; schools and educational institutions including within five metres of their compounds.
+- Community buildings and clubs under the People's Association.
+- Washrooms; ferry terminals (West Coast, Marina Bay Cruise Centre, Pasir Panjang, HarbourFront, Tanah Merah, Changi Point, Changi); designated queue areas.
+- Within five metres of building entrances, exits, windows and ventilation intakes.
+- The Orchard Road No-Smoking Zone — except inside marked yellow-box DSAs.
+
+## Where smoking IS allowed in Singapore (per NEA, August 2026)
+
+- Approved smoking corners at food retail establishments.
+- Smoking rooms at office premises, Changi Airport, and public entertainment outlets.
+- Designated smoking areas (DSAs): within university compounds, JTC-managed parks, MINDEF premises, and the Orchard Road No-Smoking Zone (yellow boxes).
+- Residential homes; private vehicles with windows fully wound up.
+- Open spaces in residential estates; open unsheltered spaces in town centres.
+- Open public spaces, surface carparks, uncovered walkways, vacant land, and the uncovered top deck of multi-storey carparks — all outside the Orchard Road No-Smoking Zone.
+
+## Key facts
+
+- The Orchard Road No-Smoking Zone has been in force since 1 January 2019, covering the precinct from Tanglin Mall to Concorde Hotel. Smoking there is only legal inside yellow-box DSAs.
+- Smoking fines: S$200 to S$1,000 composition fines for smoking in a prohibited place, under the Smoking (Prohibition in Certain Places) Act 1992.
+- Cigarette butt littering: S$300 first-time composition; court fines up to S$2,000 (first conviction), S$4,000 (second), S$10,000 (third and subsequent), plus Corrective Work Orders.
+- Vaping: illegal in Singapore. Up to S$2,000 fine for use or possession of e-cigarettes.
+- Duty-unpaid cigarettes: minimum S$500 fine for a first offence under the Customs Act.
+- Changi Airport: smoking rooms and outdoor terraces in all four terminals, airside (after security) only. Landside, Jewel and gate rooms are smoke-free.
+
+## Frequently asked questions
+
+### Where can I smoke in Singapore?
+You can smoke in approved smoking corners at food retail establishments, smoking rooms at offices, Changi Airport and entertainment outlets, and designated smoking areas (DSAs) such as the yellow boxes along Orchard Road. Smoking is also allowed in your own home, in private vehicles with windows fully wound up, and in most open public spaces outside the Orchard Road No-Smoking Zone.
+
+### Where can I smoke cigarettes legally in Singapore?
+Legally, cigarettes may be smoked in NEA-designated smoking areas, approved smoking corners and smoking rooms, and open outdoor spaces not covered by the Smoking (Prohibition in Certain Places) Regulations — for example open spaces in residential estates and town centres, surface carparks, uncovered walkways, and the top deck of multi-storey carparks (all outside Orchard Road). Always check for on-site signage first.
+
+### What is a designated smoking area (DSA) in Singapore?
+A clearly marked spot where smoking is allowed even though the surrounding area is smoke-free. The most well-known DSAs are the yellow boxes along the Orchard Road No-Smoking Zone. DSAs also exist within university compounds, JTC-managed parks, and certain MINDEF premises. NEA publishes official DSA locations as open data on data.gov.sg, which SmokeCheck SG plots on its map.
+
+### Where are the yellow boxes on Orchard Road?
+The yellow boxes are the DSAs inside the Orchard Road No-Smoking Zone (from Tanglin Mall to Concorde Hotel), in force since January 2019. On the entire stretch, smoking is only allowed inside these marked yellow boxes. SmokeCheck SG shows every official DSA with walking directions.
+
+### Can you smoke on the street in Singapore?
+It depends where. Smoking is banned at bus stops and within five metres of them, covered linkways, pedestrian overhead bridges, covered or underground walkways, within five metres of building entrances and ventilation intakes, queue areas, and the entire Orchard Road No-Smoking Zone outside yellow boxes. Open, unsheltered streets outside these places are generally not prohibited, but many precincts have additional rules.
+
+### Where is smoking banned in Singapore?
+See the "Where smoking is BANNED" list above.
+
+### Can I smoke at Changi Airport?
+Yes, but only inside the designated smoking rooms and smoking lounges in the transit areas of each terminal. Smoking is not allowed elsewhere in the terminals, including landside areas and Jewel.
+
+### How much is the smoking fine in Singapore?
+Smoking in a prohibited place is an offence under the Smoking (Prohibition in Certain Places) Act 1992. Composition fines typically range from S$200 up to S$1,000 per offence, with higher penalties for repeat offenders or court prosecution. Vaping offences carry fines of up to S$2,000.
+
+### Is vaping allowed in Singapore?
+No. The purchase, use and possession of e-cigarettes, vapes and vaporisers is illegal in Singapore, with fines of up to S$2,000.
+
+### Where can I find a smoking area near me?
+Open SmokeCheck SG, allow location access or search an address, and the map shows every nearby official designated smoking area, plus community-added smoking areas marked as unverified, with walking directions.
+
+### What are community smoking areas on SmokeCheck SG?
+Spots added by fellow users — for example an approved smoking corner at a hawker centre or an open area locals commonly use. They are marked as community-added and unverified until cross-checked against official sources. Confirm with the physical sign before relying on one.
+
+### Are smoking areas in Singapore free?
+Yes. Official NEA DSAs and Orchard Road yellow boxes are free. Indoor smoking rooms in hotels, lounges or entertainment outlets may be for customers only, and private venues can impose their own house rules.
+
+### What happens if I drop a cigarette butt in Singapore?
+Cigarette butts count as litter. Littering offences can be fined from S$300 for a first composition, with court fines up to S$2,000 for a first conviction, plus Corrective Work Orders for repeat offenders. Dispose of butts only in the ashtrays provided at smoking areas.
+
+### Does SmokeCheck SG tell me where I can smoke or where I cannot?
+Both. It is a smoking-rules checker: search any location and it shows whether the spot falls inside a no-smoking zone (red) and where the nearest designated smoking areas are (green), including community-added areas. It does not grant permission — physical signage and NEA instructions always prevail.
+
+### How do NEA officers issue smoking fines?
+NEA enforcement officers on patrol can issue on-the-spot composition fines to anyone smoking in a prohibited place. The fine is typically payable online via NEA's e-services.
+
+### What is the fine for duty-unpaid cigarettes in Singapore?
+Buying, selling or possessing duty-unpaid cigarettes is an offence under the Customs Act, with minimum fines from S$500 for a first offence and much higher penalties for larger quantities.
+
+### How can I avoid smoking fines in Singapore?
+Check the location before you light: open SmokeCheck SG, search the address, and see whether the spot is inside a no-smoking zone and where the nearest official designated smoking area is. Follow on-site signage and stub out in the ashtrays provided.
+
+## Tagline
+
+"Clean city. Clear conscience. Check first."
