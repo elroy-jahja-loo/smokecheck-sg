@@ -128,10 +128,9 @@ textarea {
 }
 
 .site-header__brand {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--spacing-1) var(--spacing-3);
+  display: grid;
+  align-items: start;
+  gap: var(--spacing-1);
   min-width: 0;
 }
 
