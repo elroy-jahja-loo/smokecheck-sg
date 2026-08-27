@@ -64,6 +64,8 @@ export function CommunityAddOverlay({ open, onClose, vectorTileBaseUrl, vectorTi
   const [polygons, setPolygons] = useState<{ id: string; ring: { lat: number; lng: number }[] }[]>([]);
   const [features, setFeatures] = useState<MapFeature[]>([]);
   const [mapView, setMapView] = useState<ViewBbox>(defaultBbox);
+  const [mapAutoFocusKey, setMapAutoFocusKey] = useState<string | undefined>();
+  const [locating, setLocating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
@@ -129,6 +131,32 @@ export function CommunityAddOverlay({ open, onClose, vectorTileBaseUrl, vectorTi
         : nextView
     ));
   }, []);
+
+  const useCurrentLocation = useCallback(() => {
+    setError(undefined);
+    trackEvent("geolocation_requested", { request_purpose: "community_add" });
+    if (!navigator.geolocation) {
+      trackEvent("geolocation_failed", { outcome: "unavailable", request_purpose: "community_add" });
+      setError(t("errors.locationUnavailable"));
+      return;
+    }
+
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        trackEvent("geolocation_resolved", { request_purpose: "community_add" });
+        setMapAutoFocusKey(`gps:${latitude.toFixed(6)},${longitude.toFixed(6)}`);
+        setLocating(false);
+      },
+      () => {
+        trackEvent("geolocation_failed", { outcome: "denied_or_unavailable", request_purpose: "community_add" });
+        setError(t("errors.locationDenied"));
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    );
+  }, [t]);
 
   const finishShape = useCallback(() => {
     if (ring.length < 3) return;
@@ -211,6 +239,7 @@ export function CommunityAddOverlay({ open, onClose, vectorTileBaseUrl, vectorTi
       <div className="community-add-overlay__map">
         <InteractiveOneMap
           center={defaultCenter}
+          autoFocusKey={mapAutoFocusKey}
           features={features}
           vectorTileBaseUrl={vectorTileBaseUrl}
           vectorTileLayerName={vectorTileLayerName}
@@ -219,7 +248,11 @@ export function CommunityAddOverlay({ open, onClose, vectorTileBaseUrl, vectorTi
           draftPolygons={mode === "no-smoking" ? draftPolygons : undefined}
           onViewportChange={updateMapView}
           onMapSelect={handleMapClick}
+          onAutoFocusComplete={() => setMapAutoFocusKey(undefined)}
         />
+        <button type="button" className="community-add-overlay__location" onClick={useCurrentLocation} disabled={locating}>
+          {locating ? "Locating..." : t("home.currentLocation")}
+        </button>
         {addDisabled ? <p className="community-add-overlay__limit" role="status">{t("community.limitReached")}</p> : null}
       </div>
 

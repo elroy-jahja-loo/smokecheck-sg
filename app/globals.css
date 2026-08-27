@@ -3284,6 +3284,29 @@ textarea {
   min-height: 320px;
 }
 
+.community-add-overlay__location {
+  position: absolute;
+  right: var(--spacing-3);
+  bottom: var(--spacing-3);
+  z-index: 800;
+  min-height: 40px;
+  border: 1px solid rgb(0 91 170 / 55%);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  color: #004481;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 0 var(--spacing-3);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 22%);
+  cursor: pointer;
+}
+
+.community-add-overlay__location:disabled {
+  cursor: wait;
+  opacity: 0.75;
+}
+
 .community-add-overlay__limit {
   position: absolute;
   top: var(--spacing-3);
