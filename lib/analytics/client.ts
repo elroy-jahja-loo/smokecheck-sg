@@ -8,6 +8,7 @@ type AnalyticsEvent =
   | "community_mode_selected"
   | "community_overlay_opened"
   | "community_polygon_completed"
+  | "community_removal_requested"
   | "community_submission_attempted"
   | "community_submission_failed"
   | "designated_area_selected"

@@ -44,11 +44,8 @@ export function HomePageContent({ signageMode, initialQuery, initialLat, initial
           </AlertBanner>
         ) : null}
 
-        <section className="public-map-home" aria-labelledby="home-title">
+        <section className="public-map-home" aria-label={t("map.ariaLabel")}>
           <div className="public-map-home__intro stack-sm">
-            <p className="eyebrow">{t("home.eyebrow")}</p>
-            <h1 id="home-title" className="section-title">{t("home.title")}</h1>
-            <p className="home-tagline">{t("home.tagline")}</p>
             <p className="body-copy">
               {t("home.subtitle")}
             </p>

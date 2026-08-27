@@ -186,6 +186,24 @@ export function LocationStatusChecker({
     await runStatusLookup({ lat, lng, selectedAddress: address, inputSource: "map" });
   }
 
+  async function removeCommunityFeature(feature: MapFeature) {
+    const id = feature.id.startsWith("community-") ? feature.id.slice("community-".length) : "";
+    if (!id || feature.verified !== false || feature.sourceId !== "community-reports") return;
+
+    try {
+      const response = await fetch("/api/community/areas", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, kind: feature.kind }),
+      });
+      if (!response.ok) throw new Error("Unable to remove community area.");
+      setMapFeatures((current) => current.filter((entry) => entry.id !== feature.id));
+      setMapNotice("Community area removed.");
+    } catch {
+      setMapNotice("Could not remove this community area. Please try again.");
+    }
+  }
+
   function useMyLocation() {
     setError(undefined);
     setRouteResponse(undefined);
@@ -565,6 +583,7 @@ export function LocationStatusChecker({
         onUseMyLocation={stableUseMyLocation}
         onDesignatedAreaSelect={selectDesignatedArea}
         onDesignatedAreaRoute={stableRouteToDesignatedArea}
+        onRemoveCommunityFeature={removeCommunityFeature}
         onAutoFocusComplete={handleAutoFocusComplete}
       />
 
@@ -611,7 +630,7 @@ export function LocationStatusChecker({
   );
 }
 
-const MapPreview = memo(function MapPreview({ features, vectorTileBaseUrl, vectorTileLayerName, autoFocusKey, mapNotice, result, gpsAccuracyM, routeStart, routeLine, center, onViewportChange, onMapSelect, onUseMyLocation, onDesignatedAreaSelect, onDesignatedAreaRoute, onAutoFocusComplete }: {
+const MapPreview = memo(function MapPreview({ features, vectorTileBaseUrl, vectorTileLayerName, autoFocusKey, mapNotice, result, gpsAccuracyM, routeStart, routeLine, center, onViewportChange, onMapSelect, onUseMyLocation, onDesignatedAreaSelect, onDesignatedAreaRoute, onRemoveCommunityFeature, onAutoFocusComplete }: {
   features: MapFeature[];
   vectorTileBaseUrl?: string;
   vectorTileLayerName?: string;
@@ -627,6 +646,7 @@ const MapPreview = memo(function MapPreview({ features, vectorTileBaseUrl, vecto
   onUseMyLocation: () => void;
   onDesignatedAreaSelect?: (area: { name: string; lat: number; lng: number }) => void;
   onDesignatedAreaRoute?: (area: { name: string; lat: number; lng: number }) => void;
+  onRemoveCommunityFeature: (feature: MapFeature) => void;
   onAutoFocusComplete?: () => void;
 }) {
   const { t } = useI18n();
@@ -649,6 +669,7 @@ const MapPreview = memo(function MapPreview({ features, vectorTileBaseUrl, vecto
         onMapSelect={onMapSelect}
         onDesignatedAreaSelect={onDesignatedAreaSelect}
         onDesignatedAreaRoute={onDesignatedAreaRoute}
+        onRemoveCommunityFeature={onRemoveCommunityFeature}
         onAutoFocusComplete={onAutoFocusComplete}
       />
        <div className="public-map-controls" aria-label={t("map.ariaPublicControls")}>

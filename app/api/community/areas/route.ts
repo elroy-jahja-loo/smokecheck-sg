@@ -7,7 +7,7 @@ import { track } from "@vercel/analytics/server";
 
 export const dynamic = "force-dynamic";
 
-const corsOptions = { methods: ["POST", "OPTIONS"] };
+const corsOptions = { methods: ["POST", "DELETE", "OPTIONS"] };
 
 type CommunitySubmitPayload = {
   designatedAreas: { lat: number; lng: number }[];
@@ -16,6 +16,7 @@ type CommunitySubmitPayload = {
 
 const MAX_POINTS_PER_KIND = 10;
 const MAX_ZONE_VERTICES = 64;
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export function OPTIONS(request: Request) {
   return preflightResponse(request, corsOptions);
@@ -101,6 +102,46 @@ export async function POST(request: Request) {
   return appendCorsHeaders(jsonResponse({ added: { designatedAreas: addedDesignated, prohibitedZones: addedProhibited } }), request, corsOptions);
 }
 
+export async function DELETE(request: Request) {
+  const startedAt = Date.now();
+  const jsonError = requireJsonRequest(request);
+  if (jsonError) return appendCorsHeaders(jsonError, request, corsOptions);
+
+  const limited = await enforceRateLimit(request, "community-remove", 5, 3600);
+  if (limited) {
+    await trackCommunityRemoval("rate_limited");
+    return appendCorsHeaders(limited, request, corsOptions);
+  }
+
+  const payload = await request.json().catch(() => undefined) as { id?: string; kind?: "designated-area" | "prohibited-zone" } | undefined;
+  if (!payload || !uuidPattern.test(payload.id ?? "") || (payload.kind !== "designated-area" && payload.kind !== "prohibited-zone")) {
+    await trackCommunityRemoval("invalid_payload");
+    return appendCorsHeaders(badRequest("Expected an unverified community area id and type."), request, corsOptions);
+  }
+  if (!hasPostgisConfig()) {
+    await trackCommunityRemoval("unavailable");
+    return appendCorsHeaders(jsonResponse({ error: "unavailable", message: "Community areas are temporarily unavailable." }, { status: 503 }), request, corsOptions);
+  }
+
+  const table = payload.kind === "designated-area" ? "community_designated_areas" : "community_prohibited_zones";
+  try {
+    const result = await getPostgisPool().query(`delete from public.${table} where id = $1 and verified = false`, [payload.id]);
+    if (result.rowCount === 0) {
+      await trackCommunityRemoval("not_found_or_verified", payload.kind);
+      return appendCorsHeaders(jsonResponse({ error: "not_found", message: "This community area is unavailable for removal." }, { status: 404 }), request, corsOptions);
+    }
+  } catch {
+    observeApiRequest("/api/community/areas", startedAt, { removalFailed: true });
+    await trackCommunityRemoval("failed", payload.kind);
+    return appendCorsHeaders(jsonResponse({ error: "removal_failed", message: "Could not remove the community area. Please try again." }, { status: 500 }), request, corsOptions);
+  }
+
+  await cacheAdapter.invalidatePrefix("viewport:v1:");
+  observeApiRequest("/api/community/areas", startedAt, { removedCommunityArea: true, kind: payload.kind });
+  await trackCommunityRemoval("succeeded", payload.kind);
+  return appendCorsHeaders(jsonResponse({ deleted: true }), request, corsOptions);
+}
+
 async function trackCommunityOutcome(outcome: "failed" | "invalid_content_type" | "invalid_payload" | "rate_limited" | "succeeded" | "unavailable", payload?: CommunitySubmitPayload) {
   const designatedCount = payload?.designatedAreas.length ?? 0;
   const prohibitedCount = payload?.prohibitedZones.length ?? 0;
@@ -108,6 +149,10 @@ async function trackCommunityOutcome(outcome: "failed" | "invalid_content_type" 
   const totalCount = designatedCount + prohibitedCount;
   const itemCountBucket = totalCount === 0 ? "0" : totalCount === 1 ? "1" : totalCount <= 3 ? "2-3" : "4-plus";
   await track("community_submission_completed", { outcome, submission_kind: submissionKind, item_count_bucket: itemCountBucket }).catch(() => undefined);
+}
+
+async function trackCommunityRemoval(outcome: "failed" | "invalid_payload" | "not_found_or_verified" | "rate_limited" | "succeeded" | "unavailable", kind?: "designated-area" | "prohibited-zone") {
+  await track("community_removal_completed", { outcome, area_kind: kind ?? "unknown" }).catch(() => undefined);
 }
 
 function parseCommunityPayload(body: unknown): CommunitySubmitPayload | undefined {

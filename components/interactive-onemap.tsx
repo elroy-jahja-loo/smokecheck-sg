@@ -65,6 +65,7 @@ type InteractiveOneMapProps = {
   onMapSelect: (lat: number, lng: number) => void;
   onDesignatedAreaSelect?: (area: { name: string; lat: number; lng: number }) => void;
   onDesignatedAreaRoute?: (area: { name: string; lat: number; lng: number }) => void;
+  onRemoveCommunityFeature?: (feature: MapFeature) => void;
   onAutoFocusComplete?: () => void;
 };
 
@@ -224,6 +225,7 @@ export function InteractiveOneMap(props: InteractiveOneMapProps) {
         onMapSelect={props.onMapSelect}
         onDesignatedAreaSelect={props.onDesignatedAreaSelect}
         onDesignatedAreaRoute={props.onDesignatedAreaRoute}
+        onRemoveCommunityFeature={props.onRemoveCommunityFeature}
         onAutoFocusComplete={props.onAutoFocusComplete}
       />
     </MapContainer>
@@ -247,6 +249,7 @@ const InteractiveMapLayer = memo(function InteractiveMapLayer({
   onMapSelect,
   onDesignatedAreaSelect,
   onDesignatedAreaRoute,
+  onRemoveCommunityFeature,
   onAutoFocusComplete,
 }: Omit<InteractiveOneMapProps, "center">) {
   const { t } = useI18n();
@@ -488,6 +491,7 @@ const InteractiveMapLayer = memo(function InteractiveMapLayer({
                   <strong>{feature.name}</strong>
                   <span>{t("map.communityAreaPopup")}</span>
                   <button type="button" onClick={() => { trackEvent("directions_requested", { destination_source: "community_map_marker" }); onDesignatedAreaRoute?.({ name: feature.name, lat: coordinate.lat, lng: coordinate.lng }); }}>{t("map.getDirections")}</button>
+                  {onRemoveCommunityFeature && isRemovableCommunityFeature(feature) ? <button type="button" onClick={() => removeCommunityFeature(feature, onRemoveCommunityFeature)}>Remove community area</button> : null}
                 </div>
               </Popup>
             </Marker>
@@ -500,6 +504,7 @@ const InteractiveMapLayer = memo(function InteractiveMapLayer({
           feature={feature}
           onMapSelect={onMapSelectStable}
           popupMessage={isCommunityFeature(feature) ? t("map.communityZonePopup") : popupProhibited}
+          onRemoveCommunityFeature={onRemoveCommunityFeature}
         />
       ))}
       {result?.nearestDesignatedArea ? (
@@ -555,10 +560,12 @@ const ProhibitedFeature = memo(function ProhibitedFeature({
   feature,
   onMapSelect,
   popupMessage,
+  onRemoveCommunityFeature,
 }: {
   feature: MapFeature;
   onMapSelect: (lat: number, lng: number) => void;
   popupMessage: string;
+  onRemoveCommunityFeature?: (feature: MapFeature) => void;
 }) {
   const community = isCommunityFeature(feature);
   const popupText = useMemo(() => `${feature.name}. ${popupMessage}`, [feature.name, popupMessage]);
@@ -606,7 +613,12 @@ const ProhibitedFeature = memo(function ProhibitedFeature({
             }}
             eventHandlers={{ click: (event: L.LeafletMouseEvent) => onMapSelect(event.latlng.lat, event.latlng.lng) }}
           >
-            <Popup>{popupText}</Popup>
+            <Popup>
+              <div className="map-popup-action">
+                <span>{popupText}</span>
+                {onRemoveCommunityFeature && isRemovableCommunityFeature(feature) ? <button type="button" onClick={() => removeCommunityFeature(feature, onRemoveCommunityFeature)}>Remove community area</button> : null}
+              </div>
+            </Popup>
           </Polygon>
         ))}
       </>
@@ -646,6 +658,16 @@ const ProhibitedFeature = memo(function ProhibitedFeature({
 
 function isFeatureLayerVisible(kind: string) {
   return kind === "designated-area" || kind === "prohibited-zone";
+}
+
+function isRemovableCommunityFeature(feature: MapFeature) {
+  return isCommunityFeature(feature) && feature.verified === false;
+}
+
+function removeCommunityFeature(feature: MapFeature, onRemoveCommunityFeature: ((feature: MapFeature) => void) | undefined) {
+  if (!onRemoveCommunityFeature || !window.confirm("Remove this unverified community area? This cannot be undone.")) return;
+  trackEvent("community_removal_requested", { area_kind: feature.kind });
+  onRemoveCommunityFeature(feature);
 }
 
 function toSafeCoordinate(value: { lat?: number; lng?: number } | undefined) {
