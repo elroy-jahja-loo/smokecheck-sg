@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { useI18n } from "@/lib/i18n/i18n-provider";
 
-const ratings = [1, 2, 3, 4, 5] as const;
+const ratings = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 
 export function FeedbackForm() {
   const { t } = useI18n();
@@ -18,7 +18,10 @@ export function FeedbackForm() {
   const messageInput = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    const openFeedback = () => setIsOpen(true);
+    const openFeedback = () => {
+      setStatus("idle");
+      setIsOpen(true);
+    };
     window.addEventListener("smokecheck:open-feedback", openFeedback);
     if (window.location.hash === "#feedback") openFeedback();
     return () => window.removeEventListener("smokecheck:open-feedback", openFeedback);
@@ -52,6 +55,7 @@ export function FeedbackForm() {
       setRatingComment("");
       idempotencyKey.current = crypto.randomUUID();
       setStatus("success");
+      setIsOpen(false);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : t("feedback.submitError"));
       setStatus("error");
@@ -65,7 +69,7 @@ export function FeedbackForm() {
         <h2 id="feedback-entry-title">{t("feedback.title")}</h2>
         <p>{t("feedback.description")}</p>
       </div>
-      <button type="button" className="live-primary-button" onClick={() => setIsOpen(true)}>{t("nav.feedback")}</button>
+      <button type="button" className="live-primary-button" onClick={() => { setStatus("idle"); setIsOpen(true); }}>{t("nav.feedback")}</button>
     </section>
     {isOpen ? createPortal(
       <div className="feedback-modal" role="presentation" onClick={(event) => { if (event.target === event.currentTarget) setIsOpen(false); }}>
@@ -88,8 +92,7 @@ export function FeedbackForm() {
                 {ratings.map((value) => (
                   <label key={value} className="feedback-form__rating">
                     <input type="radio" name="rating" value={value} checked={rating === value} onChange={() => setRating(value)} required />
-                    <span aria-hidden="true">{value}</span>
-                    <span className="sr-only">{t("feedback.ratingOption").replace("{rating}", String(value))}</span>
+                    <span>{value}</span>
                   </label>
                 ))}
               </div>

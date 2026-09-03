@@ -2,7 +2,7 @@ create table if not exists public.feedback_submissions (
   id uuid primary key default extensions.gen_random_uuid(),
   idempotency_key text not null unique,
   feedback text not null check (char_length(feedback) between 1 and 2000),
-  rating smallint not null check (rating between 1 and 5),
+  rating smallint not null check (rating between 1 and 10),
   rating_comment text not null default '' check (char_length(rating_comment) <= 2000),
   email_sent_at timestamptz,
   created_at timestamptz not null default now()

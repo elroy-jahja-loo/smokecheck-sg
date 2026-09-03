@@ -30,7 +30,7 @@ const ragQuerySchema = z.object({
 
 const feedbackSubmissionSchema = z.object({
   feedback: z.string().trim().min(1).max(2000),
-  rating: z.number().int().min(1).max(5),
+  rating: z.number().int().min(1).max(10),
   ratingComment: z.string().trim().max(2000).optional().default(""),
 });
 
