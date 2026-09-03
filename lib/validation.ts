@@ -28,6 +28,12 @@ const ragQuerySchema = z.object({
   question: z.string().min(1).max(500),
 });
 
+const feedbackSubmissionSchema = z.object({
+  feedback: z.string().trim().min(1).max(2000),
+  rating: z.number().int().min(1).max(5),
+  ratingComment: z.string().trim().max(2000).optional().default(""),
+});
+
 function formatZodError(error: z.ZodError) {
   return error.issues
     .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
@@ -54,6 +60,10 @@ function validateRagPayload(value: unknown) {
 
 function sanitizeNotes(value: string): string {
   return value.replace(/[<>]/g, "").trim().slice(0, 1000);
+}
+
+function sanitizeFeedback(value: string): string {
+  return value.replace(/[<>]/g, "").trim().slice(0, 2000);
 }
 
 export function parseCoordinatePayload(value: unknown) {
@@ -94,4 +104,16 @@ export function parseRagPayload(value: unknown) {
   const result = validateRagPayload(value);
   if ("error" in result) return undefined;
   return { question: result.data.question };
+}
+
+export function parseFeedbackSubmission(value: unknown) {
+  const result = feedbackSubmissionSchema.safeParse(value);
+  if (!result.success) return undefined;
+  const feedback = sanitizeFeedback(result.data.feedback);
+  if (!feedback) return undefined;
+  return {
+    feedback,
+    rating: result.data.rating,
+    ratingComment: sanitizeFeedback(result.data.ratingComment),
+  };
 }

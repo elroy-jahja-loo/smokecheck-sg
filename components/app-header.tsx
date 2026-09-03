@@ -40,6 +40,7 @@ export function AppHeader({ officer = false, hideNav = false }: AppHeaderProps) 
                 <Link href="/smoking-areas" aria-current={isActive("/smoking-areas") ? "page" : undefined}>{t("nav.smokingAreas")}</Link>
                 <Link href="/rules" aria-current={isActive("/rules") ? "page" : undefined}>{t("nav.rules")}</Link>
                 <Link href="/sources" aria-current={isActive("/sources") ? "page" : undefined}>{t("nav.sources")}</Link>
+                <Link href="/#feedback">{t("nav.feedback")}</Link>
               </>
             )}
           </nav>}

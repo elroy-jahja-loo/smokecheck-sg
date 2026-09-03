@@ -10,6 +10,7 @@ const recommendedVars = [
   "QSTASH_TOKEN",
   "QSTASH_URL",
   "TURNSTILE_SECRET_KEY",
+  "RESEND_API_KEY",
 ] as const;
 
 const productionVars = [
@@ -40,6 +41,7 @@ const productionVars = [
   "NEXT_PUBLIC_TURNSTILE_SITE_KEY",
   "SENTRY_DSN",
   "NEXT_PUBLIC_SENTRY_DSN",
+  "RESEND_API_KEY",
 ] as const;
 
 type EnvCheckResult = {
@@ -104,4 +106,3 @@ export function validateEnvironment(env: NodeJS.ProcessEnv = process.env): EnvCh
 
   return result;
 }
-

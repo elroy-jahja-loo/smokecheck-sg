@@ -93,6 +93,7 @@ Configure secrets in Vercel project settings, never in Git. Production validatio
 | Data sync | Data.gov.sg dataset IDs and optionally `DATAGOV_API_KEY` |
 | Object storage | `OBJECT_STORAGE_ENDPOINT`, `OBJECT_STORAGE_REGION`, `OBJECT_STORAGE_BUCKET`, `OBJECT_STORAGE_ACCESS_KEY_ID`, `OBJECT_STORAGE_SECRET_ACCESS_KEY` |
 | Bot control | `BOT_PROTECTION_MODE=turnstile`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`, `BOT_PROTECTION_ALLOWED_HOSTNAMES` |
+| Feedback notifications | `RESEND_API_KEY`; optionally `RESEND_FROM_EMAIL` for a verified sender |
 | Sentry | `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ENVIRONMENT`, `NEXT_PUBLIC_SENTRY_ENVIRONMENT` |
 | Telemetry | `OTEL_SERVICE_NAME`; optional custom `OTEL_EXPORTER_OTLP_ENDPOINT` and `OTEL_EXPORTER_OTLP_HEADERS` |
 

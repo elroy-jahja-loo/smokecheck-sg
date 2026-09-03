@@ -34,6 +34,7 @@ const productionEnvironment: NodeJS.ProcessEnv = {
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: "test-site-key",
   SENTRY_DSN: "https://public@example.invalid/1",
   NEXT_PUBLIC_SENTRY_DSN: "https://public@example.invalid/1",
+  RESEND_API_KEY: "re_test",
 };
 
 test("production environment requires every release dependency", () => {

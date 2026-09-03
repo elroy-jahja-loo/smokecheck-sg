@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 
 import { Badge } from "@/components/badge";
 import { Button } from "@/components/button";
+import { FeedbackForm } from "@/components/feedback-form";
 import { MapLegend } from "@/components/map-legend";
 import { designatedAreas } from "@/data/prototype-data";
 import { trackEvent } from "@/lib/analytics/client";
@@ -677,6 +678,7 @@ const MapPreview = memo(function MapPreview({ features, vectorTileBaseUrl, vecto
        </div>
     </section>
        <div className="live-map-preview__legend"><MapLegend showCurrentLocation={Boolean(gpsAccuracyM || routeStart)} showNearestArea={Boolean(result?.nearestDesignatedArea)} showFocus={Boolean(result)} /></div>
+       <FeedbackForm />
     <div className="live-map-preview__status">
       <strong>{result ? getStatusLabel(result.status, t) : t("result.selectPrompt")}</strong>
       <span>{mapNotice ?? (result ? t("result.guidanceNote") : t("result.searchFirst"))}</span>

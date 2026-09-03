@@ -1,7 +1,7 @@
 {
   "locale": "ms", "label": "Malay",
   "app": { "title": "SmokeCheck SG", "shortTitle": "SmokeCheck SG" },
-  "nav": { "search": "Cari", "smokingAreas": "Kawasan merokok", "rules": "Peraturan", "sources": "Sumber", "map": "Peta" },
+  "nav": { "search": "Cari", "smokingAreas": "Kawasan merokok", "rules": "Peraturan", "sources": "Sumber", "map": "Peta", "feedback": "Beri maklum balas" },
   "masthead": { "label": "Dicipta oleh warganegara Singapura" },
   "home": {
     "eyebrow": "Panduan awam", "title": "Semak peraturan bebas rokok untuk lokasi", "tagline": "Bandar bersih. Hati tenang. Semak dahulu.",
@@ -77,9 +77,10 @@
     "privacyTitle": "Privasi", "privacyBody": "Mod awam tidak memerlukan log masuk.",
     "limitationsTitle": "Had", "limitations": ["Ketepatan GPS ialah anggaran, bukan bukti sempadan undang-undang.","Data kawasan ditetapkan mungkin tidak mencerminkan perubahan terkini pada peraturan atau aturan setempat.","Set data Data.gov.sg mempunyai syarat kesegaran, ketepatan dan pelesenannya sendiri.","Data peta haba dan aduan dalam mod pegawai disimulasikan untuk kegunaan prototaip sahaja.","Aplikasi ini tidak mengeluarkan denda, mengesahkan identiti atau menggantikan kuasa penguatkuasaan."]
   },
+  "feedback": { "eyebrow": "Bantu memperbaik SmokeCheck", "title": "Kongsi maklum balas anda", "description": "Beritahu kami apa yang berkesan, yang tidak, atau yang boleh menjadikan SmokeCheck lebih berguna.", "messageLabel": "Maklum balas anda", "ratingLabel": "Nilai pengalaman anda", "ratingOption": "Beri {rating} daripada 5", "ratingLow": "Lemah", "ratingHigh": "Cemerlang", "ratingCommentLabel": "Ulas pengalaman anda", "optional": "pilihan", "submit": "Hantar maklum balas", "submitting": "Menghantar...", "success": "Terima kasih. Maklum balas anda telah dihantar.", "submitError": "Kami tidak dapat menghantar maklum balas anda. Sila cuba lagi." },
   "footer": {
     "prototypeNote": "Panduan prototaip sahaja.", "description": "Prototaip panduan. Ini bukan nasihat undang-undang.",
-    "map": "Peta", "smokingAreas": "Panduan kawasan merokok", "orchard": "Kotak kuning Orchard Road", "fines": "Denda merokok", "changi": "Kawasan merokok Changi", "rules": "Peraturan", "sources": "Sumber", "demoOfficer": "Ruang kerja pegawai demo"
+    "map": "Peta", "smokingAreas": "Panduan kawasan merokok", "orchard": "Kotak kuning Orchard Road", "fines": "Denda merokok", "changi": "Kawasan merokok Changi", "rules": "Peraturan", "sources": "Sumber", "demoOfficer": "Ruang kerja pegawai demo", "feedback": "Beri maklum balas"
   },
   "accessibility": { "textSize": "Saiz teks", "standard": "Piawai", "large": "Besar", "extraLarge": "Sangat besar", "skipToContent": "Langkau ke kandungan utama" },
   "officer": {

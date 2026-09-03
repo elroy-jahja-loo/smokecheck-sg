@@ -22,6 +22,7 @@ const rateLimitedPaths = [
   "/api/geospatial/status",
   "/api/geospatial/map-features",
   "/api/reports",
+  "/api/feedback",
   "/api/rag/query",
   "/api/officer/login",
   "/api/officer/reports",

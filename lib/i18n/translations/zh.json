@@ -1,7 +1,7 @@
 {
   "locale": "zh", "label": "Chinese",
   "app": { "title": "烟雾检查新加坡", "shortTitle": "烟雾检查SG" },
-  "nav": { "search": "搜索", "smokingAreas": "吸烟区", "rules": "规则", "sources": "来源", "map": "地图" },
+  "nav": { "search": "搜索", "smokingAreas": "吸烟区", "rules": "规则", "sources": "来源", "map": "地图", "feedback": "提供反馈" },
   "masthead": { "label": "本网站由新加坡公民创建" },
   "home": {
     "eyebrow": "公众指导", "title": "查询地点的无烟规则", "tagline": "清洁城市。问心无愧。先查后点。", "subtitle": "搜索地址或使用定位来查询附近的禁烟限制。结果仅供参考，不授予许可。",
@@ -71,10 +71,11 @@
     "privacyTitle": "隐私", "privacyBody": "公共模式不需要登录。位置数据在客户端处理，默认不存储。",
     "limitationsTitle": "限制", "limitations": ["GPS 精度仅为估计值，并非合法边界证明。","指定区域数据可能未反映近期规则或当地安排的变化。","Data.gov.sg 数据集有其自身的新鲜度、准确性和许可条款。","官员模式中的热图和投诉数据仅为原型模拟数据。","本应用不会开罚单、验证身份或取代执法权限。"]
   },
+  "feedback": { "eyebrow": "帮助改进 SmokeCheck", "title": "分享您的反馈", "description": "告诉我们哪些内容有用、哪些没有用，或怎样让 SmokeCheck 更实用。", "messageLabel": "您的反馈", "ratingLabel": "为您的体验评分", "ratingOption": "给 {rating} 分（满分 5 分）", "ratingLow": "差", "ratingHigh": "优秀", "ratingCommentLabel": "评论您的体验评分", "optional": "可选", "submit": "发送反馈", "submitting": "正在发送...", "success": "谢谢。您的反馈已发送。", "submitError": "无法发送您的反馈。请重试。" },
   "footer": {
     "prototypeNote": "仅限原型指导。以实体标识、现行法律和NEA指示为准。",
     "description": "查询地点无烟规则的指导原型。这不是法律建议。",
-    "map": "地图", "smokingAreas": "吸烟区指南", "orchard": "乌节路黄格吸烟区", "fines": "吸烟罚款", "changi": "樟宜机场吸烟区", "rules": "规则", "sources": "来源", "demoOfficer": "演示官员工作区"
+    "map": "地图", "smokingAreas": "吸烟区指南", "orchard": "乌节路黄格吸烟区", "fines": "吸烟罚款", "changi": "樟宜机场吸烟区", "rules": "规则", "sources": "来源", "demoOfficer": "演示官员工作区", "feedback": "提供反馈"
   },
   "accessibility": { "textSize": "文字大小", "standard": "标准", "large": "大", "extraLarge": "特大", "skipToContent": "跳至主要内容" },
   "officer": {

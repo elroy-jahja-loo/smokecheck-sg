@@ -21,6 +21,7 @@ export function PublicFooter() {
           <Link href="/changi-airport-smoking-areas">{t("footer.changi")}</Link>
           <Link href="/rules">{t("footer.rules")}</Link>
           <Link href="/sources">{t("footer.sources")}</Link>
+          <Link href="/#feedback">{t("footer.feedback")}</Link>
           <Link href="/ops/login">{t("footer.demoOfficer")}</Link>
         </nav>
       </div>

@@ -10,7 +10,8 @@
     "smokingAreas": "Smoking areas",
     "rules": "Rules",
     "sources": "Sources",
-    "map": "Map"
+    "map": "Map",
+    "feedback": "Give feedback"
   },
   "masthead": {
     "label": "This is created by a Singapore citizen"
@@ -154,7 +155,24 @@
     "changi": "Changi Airport smoking areas",
     "rules": "Rules",
     "sources": "Sources",
-    "demoOfficer": "Demo officer workspace"
+    "demoOfficer": "Demo officer workspace",
+    "feedback": "Give feedback"
+  },
+  "feedback": {
+    "eyebrow": "Help improve SmokeCheck",
+    "title": "Share your feedback",
+    "description": "Tell us what worked, what did not, or what would make SmokeCheck more useful.",
+    "messageLabel": "Your feedback",
+    "ratingLabel": "Rate your experience",
+    "ratingOption": "Rate {rating} out of 5",
+    "ratingLow": "Poor",
+    "ratingHigh": "Excellent",
+    "ratingCommentLabel": "Comment on your experience rating",
+    "optional": "optional",
+    "submit": "Send feedback",
+    "submitting": "Sending...",
+    "success": "Thank you. Your feedback has been sent.",
+    "submitError": "We could not send your feedback. Please try again."
   },
   "accessibility": {
     "textSize": "Text size",
