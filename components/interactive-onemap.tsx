@@ -107,13 +107,6 @@ const draftPointIcon = new L.DivIcon({
   iconAnchor: [17, 17],
 });
 
-const nearestIcon = new L.DivIcon({
-  className: "leaflet-div-marker leaflet-div-marker--nearest",
-  html: "<span>N</span>",
-  iconSize: [44, 44],
-  iconAnchor: [22, 22],
-});
-
 const clusterIconCache = new Map<number, L.DivIcon>();
 function getClusterIcon(count: number) {
   let icon = clusterIconCache.get(count);
@@ -507,11 +500,6 @@ const InteractiveMapLayer = memo(function InteractiveMapLayer({
           onRemoveCommunityFeature={onRemoveCommunityFeature}
         />
       ))}
-      {result?.nearestDesignatedArea ? (
-        <Marker position={[result.nearestDesignatedArea.lat, result.nearestDesignatedArea.lng]} icon={nearestIcon}>
-          <Popup>{t("map.nearestPopup")}: {result.nearestDesignatedArea.name}</Popup>
-        </Marker>
-      ) : null}
       {routeStart ? (
         <Marker position={[routeStart.lat, routeStart.lng]} icon={routeStartIcon}>
           <Popup>{t("map.routeStartPopup")}: {routeStart.label}</Popup>

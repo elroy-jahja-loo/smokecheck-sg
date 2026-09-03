@@ -565,7 +565,6 @@ textarea {
 .leaflet-div-marker--amber { background: var(--color-warning-amber); font-size: 0.68rem; }
 .leaflet-div-marker--green { background: #3f6f52; }
 .leaflet-div-marker--cluster { background: #3f6f52; outline: 4px solid rgb(63 111 82 / 20%); outline-offset: 4px; }
-.leaflet-div-marker--nearest { background: #3f6f52; outline: 4px solid rgb(63 111 82 / 26%); outline-offset: 4px; }
 .leaflet-div-marker--density {
   width: 48px;
   height: 48px;
