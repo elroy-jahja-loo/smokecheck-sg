@@ -172,7 +172,8 @@
     "submit": "Send feedback",
     "submitting": "Sending...",
     "success": "Thank you. Your feedback has been sent.",
-    "submitError": "We could not send your feedback. Please try again."
+    "submitError": "We could not send your feedback. Please try again.",
+    "close": "Close feedback form"
   },
   "accessibility": {
     "textSize": "Text size",

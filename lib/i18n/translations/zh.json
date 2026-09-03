@@ -71,7 +71,7 @@
     "privacyTitle": "隐私", "privacyBody": "公共模式不需要登录。位置数据在客户端处理，默认不存储。",
     "limitationsTitle": "限制", "limitations": ["GPS 精度仅为估计值，并非合法边界证明。","指定区域数据可能未反映近期规则或当地安排的变化。","Data.gov.sg 数据集有其自身的新鲜度、准确性和许可条款。","官员模式中的热图和投诉数据仅为原型模拟数据。","本应用不会开罚单、验证身份或取代执法权限。"]
   },
-  "feedback": { "eyebrow": "帮助改进 SmokeCheck", "title": "分享您的反馈", "description": "告诉我们哪些内容有用、哪些没有用，或怎样让 SmokeCheck 更实用。", "messageLabel": "您的反馈", "ratingLabel": "为您的体验评分", "ratingOption": "给 {rating} 分（满分 5 分）", "ratingLow": "差", "ratingHigh": "优秀", "ratingCommentLabel": "评论您的体验评分", "optional": "可选", "submit": "发送反馈", "submitting": "正在发送...", "success": "谢谢。您的反馈已发送。", "submitError": "无法发送您的反馈。请重试。" },
+  "feedback": { "eyebrow": "帮助改进 SmokeCheck", "title": "分享您的反馈", "description": "告诉我们哪些内容有用、哪些没有用，或怎样让 SmokeCheck 更实用。", "messageLabel": "您的反馈", "ratingLabel": "为您的体验评分", "ratingOption": "给 {rating} 分（满分 5 分）", "ratingLow": "差", "ratingHigh": "优秀", "ratingCommentLabel": "评论您的体验评分", "optional": "可选", "submit": "发送反馈", "submitting": "正在发送...", "success": "谢谢。您的反馈已发送。", "submitError": "无法发送您的反馈。请重试。", "close": "关闭反馈表单" },
   "footer": {
     "prototypeNote": "仅限原型指导。以实体标识、现行法律和NEA指示为准。",
     "description": "查询地点无烟规则的指导原型。这不是法律建议。",

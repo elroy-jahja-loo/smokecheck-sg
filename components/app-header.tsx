@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { MouseEvent } from "react";
 import { GovernmentMasthead } from "./government-masthead";
 import { SmokeCheckLogo } from "./smokecheck-logo";
 import { LanguageSwitcher } from "./language-switcher";
@@ -16,6 +17,11 @@ export function AppHeader({ officer = false, hideNav = false }: AppHeaderProps) 
   const pathname = usePathname();
   const { t } = useI18n();
   const isActive = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(href));
+  const openFeedback = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (pathname !== "/") return;
+    event.preventDefault();
+    window.dispatchEvent(new Event("smokecheck:open-feedback"));
+  };
 
   return (
     <>
@@ -40,7 +46,7 @@ export function AppHeader({ officer = false, hideNav = false }: AppHeaderProps) 
                 <Link href="/smoking-areas" aria-current={isActive("/smoking-areas") ? "page" : undefined}>{t("nav.smokingAreas")}</Link>
                 <Link href="/rules" aria-current={isActive("/rules") ? "page" : undefined}>{t("nav.rules")}</Link>
                 <Link href="/sources" aria-current={isActive("/sources") ? "page" : undefined}>{t("nav.sources")}</Link>
-                <Link href="/#feedback">{t("nav.feedback")}</Link>
+                <Link href="/#feedback" onClick={openFeedback}>{t("nav.feedback")}</Link>
               </>
             )}
           </nav>}
