@@ -26,6 +26,20 @@ export const metadata: Metadata = {
     "smoking prohibition singapore",
   ],
   alternates: { canonical: "/smoking-areas" },
+  openGraph: {
+    type: "article",
+    title: "Smoking Areas in Singapore: Where You Can & Can't Smoke",
+    description:
+      "Where to smoke legally in Singapore: NEA designated smoking areas, Orchard Road yellow boxes, no-smoking zones and fines.",
+    url: "/smoking-areas",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "SmokeCheck SG smoking areas and no-smoking zones map" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Smoking Areas in Singapore: Where You Can & Can't Smoke",
+    description: "Find designated smoking areas, no-smoking zones, Orchard yellow boxes and smoking rules.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function SmokingAreasPage() {

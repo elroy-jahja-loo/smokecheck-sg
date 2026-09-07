@@ -18,6 +18,19 @@ export const metadata: Metadata = {
     "nea smoking rules",
   ],
   alternates: { canonical: "/rules" },
+  openGraph: {
+    type: "article",
+    title: "Singapore Smoking Rules: Where You Can & Can't Smoke",
+    description: "Singapore smoking rules, prohibited places, designated smoking areas and what to do when signs are unclear.",
+    url: "/rules",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Singapore smoking rules guide" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Singapore Smoking Rules: Where You Can & Can't Smoke",
+    description: "Singapore smoking rules, prohibited places and designated smoking areas.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RulesPage() {

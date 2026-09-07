@@ -180,10 +180,7 @@ export function proxy(request: NextRequest) {
     );
   }
 
-  if (
-    process.env.VERCEL_ENV !== "production" &&
-    process.env.VERCEL_ENV !== "preview"
-  ) {
+  if (process.env.VERCEL_ENV !== "production") {
     response.headers.set("X-Robots-Tag", "noindex, nofollow");
   }
 

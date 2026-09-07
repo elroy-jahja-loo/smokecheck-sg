@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   description:
     "Search any Singapore address, postal code or landmark to check if smoking is allowed there, see nearby no-smoking zones, and find the nearest official NEA designated smoking area with walking directions.",
   alternates: { canonical: "/search" },
+  robots: { index: false, follow: true },
 };
 
 export default async function SearchPage() {

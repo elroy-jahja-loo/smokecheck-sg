@@ -49,3 +49,6 @@ pnpm-debug.log*
 .env.sentry-build-plugin
 .vercel
 .git-archive-backup/
+
+#docs
+/docs/

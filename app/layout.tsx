@@ -9,7 +9,7 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://smokecheck-sg.vercel.app";
+const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || "https://smokecheck-sg.vercel.app").replace(/\/+$/, "");
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -82,8 +82,8 @@ const SITE_JSON_LD = {
   "@graph": [
     {
       "@type": "WebSite",
-      "@id": `${process.env.NEXT_PUBLIC_APP_URL || "https://smokecheck-sg.vercel.app"}/#website`,
-      url: process.env.NEXT_PUBLIC_APP_URL || "https://smokecheck-sg.vercel.app",
+      "@id": `${SITE_URL}/#website`,
+      url: SITE_URL,
       name: "SmokeCheck SG",
       description:
         "SmokeCheck SG is a free Singapore smoking-rules checker: find where you can and can't smoke, official NEA designated smoking areas, Orchard Road yellow boxes, community smoking areas, and smoking fines.",
@@ -92,16 +92,18 @@ const SITE_JSON_LD = {
         "@type": "SearchAction",
         target: {
           "@type": "EntryPoint",
-          urlTemplate: `${process.env.NEXT_PUBLIC_APP_URL || "https://smokecheck-sg.vercel.app"}/search?q={search_term_string}`,
+          urlTemplate: `${SITE_URL}/search?q={search_term_string}`,
         },
         "query-input": "required name=search_term_string",
       },
     },
     {
       "@type": "WebApplication",
+      "@id": `${SITE_URL}/#webapp`,
       name: "SmokeCheck SG",
-      url: process.env.NEXT_PUBLIC_APP_URL || "https://smokecheck-sg.vercel.app",
-      applicationCategory: "TravelApplication",
+      url: SITE_URL,
+      isPartOf: { "@id": `${SITE_URL}/#website` },
+      applicationCategory: "UtilitiesApplication",
       operatingSystem: "Web",
       browserRequirements: "Requires JavaScript",
       inLanguage: ["en", "zh", "ms", "ta"],

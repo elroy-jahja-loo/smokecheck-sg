@@ -18,6 +18,19 @@ export const metadata: Metadata = {
     "jewel changi smoking",
   ],
   alternates: { canonical: "/changi-airport-smoking-areas" },
+  openGraph: {
+    type: "article",
+    title: "Changi Airport Smoking Areas: Smoking Rooms in T1-T4",
+    description: "Where travelers can find designated smoking rooms at Changi Airport and the rules to follow.",
+    url: "/changi-airport-smoking-areas",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Changi Airport smoking areas guide" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Changi Airport Smoking Areas: Smoking Rooms in T1-T4",
+    description: "Where travelers can find designated smoking rooms at Changi Airport and the rules to follow.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function ChangiAirportSmokingAreasPage() {

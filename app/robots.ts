@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://smokecheck-sg.vercel.app";
+const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || "https://smokecheck-sg.vercel.app").replace(/\/+$/, "");
 
 const AI_CRAWLERS = [
   "GPTBot",
@@ -23,7 +23,7 @@ const AI_CRAWLERS = [
   "Diffbot",
 ];
 
-const DISALLOWED = ["/api/", "/ops/", "/monitoring", "/sentry-example-page", "/sentry-example-api"];
+const DISALLOWED = ["/api/", "/monitoring", "/sentry-example-page", "/sentry-example-api"];
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -35,7 +35,7 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: AI_CRAWLERS,
-        allow: ["/", "/smoking-areas", "/orchard-road-smoking-areas", "/singapore-smoking-fines", "/changi-airport-smoking-areas", "/rules", "/search", "/sources", "/llms.txt", "/llms-full.txt"],
+        allow: ["/", "/smoking-areas", "/orchard-road-smoking-areas", "/singapore-smoking-fines", "/changi-airport-smoking-areas", "/rules", "/sources", "/llms.txt", "/llms-full.txt"],
         disallow: DISALLOWED,
       },
     ],

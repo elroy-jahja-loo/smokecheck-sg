@@ -36,6 +36,7 @@ export function HomePageContent({ signageMode, initialQuery, initialLat, initial
           {t("home.alert")}
         </AlertBanner>
 
+        <h1 className="section-title">{t("home.title")}</h1>
         <p className="home-what-is-this">{t("home.whatIsThis")}</p>
 
         {signageMode ? (

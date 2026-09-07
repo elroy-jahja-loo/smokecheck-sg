@@ -20,6 +20,19 @@ export const metadata: Metadata = {
     "nea smoking area",
   ],
   alternates: { canonical: "/orchard-road-smoking-areas" },
+  openGraph: {
+    type: "article",
+    title: "Orchard Road Smoking Areas: Yellow Box DSAs & No-Smoking Zone Rules",
+    description: "Find Orchard Road yellow-box smoking areas and understand the No-Smoking Zone rules.",
+    url: "/orchard-road-smoking-areas",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Orchard Road designated smoking areas guide" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Orchard Road Smoking Areas: Yellow Box DSAs",
+    description: "Find Orchard Road yellow-box smoking areas and understand the No-Smoking Zone rules.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function OrchardRoadSmokingAreasPage() {

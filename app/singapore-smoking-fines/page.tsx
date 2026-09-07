@@ -20,6 +20,19 @@ export const metadata: Metadata = {
     "bus stop smoking fine",
   ],
   alternates: { canonical: "/singapore-smoking-fines" },
+  openGraph: {
+    type: "article",
+    title: "Singapore Smoking Fines: How Much & How to Avoid Them",
+    description: "Singapore smoking fines, no-smoking zones and the guidance to check before lighting up.",
+    url: "/singapore-smoking-fines",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Singapore smoking fines and rules guide" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Singapore Smoking Fines: How Much & How to Avoid Them",
+    description: "Singapore smoking fines, no-smoking zones and the guidance to check before lighting up.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function SingaporeSmokingFinesPage() {
