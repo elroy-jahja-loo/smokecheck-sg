@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     template: "%s | SmokeCheck SG",
   },
   description:
-    "Find smoking areas and no-smoking zones anywhere in Singapore. SmokeCheck SG maps official NEA designated smoking areas (DSA), Orchard Road yellow boxes, community-reported spots, smoking rules and fines — so you know where you can and can't smoke before you light.",
+    "Keep Singapore clean. Find designated smoking areas and check no-smoking zones across Singapore. Know a missing spot? Add it to help the community map grow.",
   verification: {
     google: "osx0BgKenZ4Ny6477cykyTIJ-DZ2Sti-k9z5K0zn0Rc",
   },
