@@ -37,5 +37,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - run: npm run check:dependencies
       - run: npm ci
       - run: npm run sync:datagov

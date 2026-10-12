@@ -78,6 +78,8 @@ npm run dev
 
 The default local mode uses seed geospatial data. Mock officer screens are for local/preview demonstration only.
 
+Dependency installs use the committed `package-lock.json`: GitHub Actions and both Dockerfiles run `npm ci`, and `vercel.json` runs the same clean install. Before installation, CI and Vercel run `npm run check:dependencies` to require matching pinned `react`/`react-dom` and `next`/`eslint-config-next` versions and a matching lockfile. Update each pair together using `npm install`, then commit both `package.json` and `package-lock.json`. Dependabot groups these pairs for future update PRs; an existing PR created under an older grouping must be recreated before it will include its missing peer.
+
 ## Required Vercel Setup
 
 Configure secrets in Vercel project settings, never in Git. Production validation requires coherent values for these groups:
