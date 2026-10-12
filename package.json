@@ -33,7 +33,7 @@
     "@upstash/qstash": "2.11.3",
     "@vercel/analytics": "^2.0.1",
     "@vercel/otel": "^2.1.3",
-    "geojson-vt": "^4.0.3",
+    "geojson-vt": "^5.0.4",
     "leaflet": "^1.9.4",
     "leaflet.vectorgrid": "^1.3.0",
     "next": "16.4.0",
