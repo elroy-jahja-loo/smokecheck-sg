@@ -3,13 +3,11 @@ import { test } from "node:test";
 
 import { createMapLifecycle } from "./map-lifecycle";
 
-test("map teardown stops animations and cancels scheduled map callbacks", () => {
-  let stopped = 0;
+test("map teardown cancels scheduled callbacks without calling a removed Leaflet map", () => {
   let nextId = 0;
   const callbacks = new Map<number, FrameRequestCallback>();
   const cancelled: number[] = [];
   const lifecycle = createMapLifecycle(
-    { stop: () => { stopped += 1; } },
     (callback) => { callbacks.set(++nextId, callback); return nextId; },
     (id) => { cancelled.push(id); },
   );
@@ -21,7 +19,6 @@ test("map teardown stops animations and cancels scheduled map callbacks", () => 
   lifecycle.dispose();
 
   assert.deepEqual(cancelled, [id]);
-  assert.equal(stopped, 1);
   assert.equal(invoked, 0);
   assert.equal(lifecycle.schedule(() => { invoked += 1; }), undefined);
 });
@@ -29,7 +26,6 @@ test("map teardown stops animations and cancels scheduled map callbacks", () => 
 test("cancelled frames never run but active frames run once", () => {
   const callbacks = new Map<number, FrameRequestCallback>();
   const lifecycle = createMapLifecycle(
-    { stop: () => undefined },
     (callback) => { const id = callbacks.size + 1; callbacks.set(id, callback); return id; },
     () => undefined,
   );

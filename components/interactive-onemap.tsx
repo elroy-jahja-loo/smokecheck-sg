@@ -265,7 +265,6 @@ const InteractiveMapLayer = memo(function InteractiveMapLayer({
     },
   });
   const lifecycle = useMemo(() => createMapLifecycle(
-    map,
     window.requestAnimationFrame.bind(window),
     window.cancelAnimationFrame.bind(window),
   ), [map]);

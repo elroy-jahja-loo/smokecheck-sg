@@ -1,5 +1,4 @@
 export function createMapLifecycle(
-  map: { stop: () => void },
   requestFrame: (callback: FrameRequestCallback) => number,
   cancelFrame: (id: number) => void,
 ) {
@@ -26,7 +25,8 @@ export function createMapLifecycle(
       disposed = true;
       for (const id of frames) cancelFrame(id);
       frames.clear();
-      map.stop();
+      // React-Leaflet removes the map and stops its animations; calling map.stop()
+      // here can access a pane already deleted by MapContainer's cleanup.
     },
   };
 }
