@@ -44,13 +44,17 @@ async function loadTranslations(locale: SupportedLocale): Promise<Record<string,
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<SupportedLocale>(() => {
-    if (typeof window === "undefined") return DEFAULT_LOCALE;
-    const saved = window.localStorage.getItem(STORAGE_KEY) as SupportedLocale | null;
-    return saved && saved in localeMeta ? saved : DEFAULT_LOCALE;
-  });
+  const [locale, setLocaleState] = useState<SupportedLocale>(DEFAULT_LOCALE);
   // Start with the default catalog so server and first client renders never expose message keys.
   const [messages, setMessages] = useState<Record<string, unknown>>(defaultMessages);
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem(STORAGE_KEY) as SupportedLocale | null;
+    if (saved && saved in localeMeta) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- restore browser preference after the matching server/client render
+      setLocaleState(saved);
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;

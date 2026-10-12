@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
+import { isInjectedStackOverflow } from "@/lib/observability/browser-error-filter";
 
 const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN ?? process.env.SENTRY_DSN;
 const appOrigin = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -8,6 +9,8 @@ if (!dsn) {
 } else {
   Sentry.init({
     dsn,
+
+    beforeSend: (event) => isInjectedStackOverflow(event, navigator.userAgent) ? null : event,
 
     integrations: [Sentry.replayIntegration()],
 

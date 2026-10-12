@@ -10,6 +10,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["data/**/*.ts", "lib/**/*.ts", "scripts/**/*.ts"],
+  "include": ["data/**/*.ts", "lib/**/*.ts", "lib/**/*.tsx", "scripts/**/*.ts"],
   "exclude": ["node_modules", ".next", ".test-build"]
 }

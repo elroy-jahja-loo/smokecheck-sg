@@ -37,14 +37,14 @@ test("report validation defaults to non-identifying observation subject", () => 
   assert.equal(draft.observationSubject, "Unknown person observed");
 });
 
-test("feedback requires a message and rating, while its rating comment is optional", () => {
-  assert.deepEqual(parseFeedbackSubmission({ feedback: "  Helpful map  ", rating: 5 }), {
+test("feedback requires a message and a 1–10 rating, while its rating comment is optional", () => {
+  assert.deepEqual(parseFeedbackSubmission({ feedback: "  Helpful map  ", rating: 10 }), {
     feedback: "Helpful map",
-    rating: 5,
+    rating: 10,
     ratingComment: "",
   });
   assert.equal(parseFeedbackSubmission({ feedback: "", rating: 5 }), undefined);
-  assert.equal(parseFeedbackSubmission({ feedback: "Helpful", rating: 6 }), undefined);
+  assert.equal(parseFeedbackSubmission({ feedback: "Helpful", rating: 11 }), undefined);
 });
 
 test("feedback strips markup before storage", () => {

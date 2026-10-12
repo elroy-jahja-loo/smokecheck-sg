@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useMemo, useRef, useId, Fragment } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, Fragment } from "react";
 import { useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -9,6 +9,7 @@ import { Circle, CircleMarker, MapContainer, Marker, Polygon, Polyline, Popup, T
 import { useI18n } from "@/lib/i18n/i18n-provider";
 import { trackEvent } from "@/lib/analytics/client";
 import { isSingaporeCoordinate } from "@/lib/onemap/onemap-validation";
+import { createMapLifecycle } from "@/lib/map/map-lifecycle";
 
 type MapFeature = {
   id: string;
@@ -150,7 +151,6 @@ function isCommunityFeature(feature: MapFeature) {
 
 export function InteractiveOneMap(props: InteractiveOneMapProps) {
   const { t } = useI18n();
-  const mapInstanceClass = `live-leaflet-map--${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const center = toSafeCoordinate(props.center) ?? fallbackCenter;
   const safeResultCoordinate = toSafeCoordinate(props.result);
   const safeResult = props.result && safeResultCoordinate ? { ...props.result, ...safeResultCoordinate } : undefined;
@@ -158,26 +158,7 @@ export function InteractiveOneMap(props: InteractiveOneMapProps) {
   const safeRouteStart = props.routeStart && safeRouteStartCoordinate ? { ...props.routeStart, ...safeRouteStartCoordinate } : undefined;
   const safeFeatures = useMemo(() => props.features.filter(hasValidFeatureCoordinate), [props.features]);
 
-  const [mapReady, setMapReady] = useState(false);
-
-  useEffect(() => {
-    const containers = document.querySelectorAll(`.${mapInstanceClass}`);
-    for (const el of containers) {
-      const leafletEl = el as HTMLElement & { _leaflet_id?: number };
-      if (leafletEl._leaflet_id !== undefined) {
-        el.innerHTML = "";
-        delete leafletEl._leaflet_id;
-      }
-    }
-    const raf = requestAnimationFrame(() => setMapReady(true));
-    return () => cancelAnimationFrame(raf);
-  }, [mapInstanceClass]);
-
   const attribution = useMemo(() => `<a href="https://www.onemap.gov.sg/" target="_blank" rel="noreferrer">${t("map.oneMapAttr")}</a>`, [t]);
-
-  if (!mapReady) {
-    return <div className={`live-leaflet-map ${mapInstanceClass}`} style={{ height: "100%", minHeight: 420 }} />;
-  }
 
   return (
     <MapContainer
@@ -187,7 +168,7 @@ export function InteractiveOneMap(props: InteractiveOneMapProps) {
       maxZoom={19}
       scrollWheelZoom
       zoomControl={false}
-      className={`live-leaflet-map ${mapInstanceClass}`}
+      className="live-leaflet-map"
       preferCanvas
       attributionControl
     >
@@ -283,22 +264,31 @@ const InteractiveMapLayer = memo(function InteractiveMapLayer({
       emitViewport(map);
     },
   });
+  const lifecycle = useMemo(() => createMapLifecycle(
+    map,
+    window.requestAnimationFrame.bind(window),
+    window.cancelAnimationFrame.bind(window),
+  ), [map]);
+
+  useEffect(() => () => lifecycle.dispose(), [lifecycle]);
 
   useEffect(() => {
     map.setMaxBounds(singaporeBounds);
   }, [map]);
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(() => map.invalidateSize());
-    const timer = window.setTimeout(() => map.invalidateSize(), 250);
+    const frame = lifecycle.schedule(() => map.invalidateSize());
+    const timer = window.setTimeout(() => {
+      if (lifecycle.isActive()) map.invalidateSize();
+    }, 250);
     return () => {
-      window.cancelAnimationFrame(frame);
+      lifecycle.cancel(frame);
       window.clearTimeout(timer);
       if (debounceTimerRef.current !== undefined) {
         window.clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [map]);
+  }, [map, lifecycle]);
 
   useEffect(() => {
     if (!autoFocusKey || previousSelectedKey.current === autoFocusKey) {
@@ -349,7 +339,7 @@ const InteractiveMapLayer = memo(function InteractiveMapLayer({
 
   useEffect(() => {
     if (!routeLine || routeLine.length < 2) return;
-    const raf = requestAnimationFrame(() => {
+    const raf = lifecycle.schedule(() => {
       try {
         const bounds = L.latLngBounds(routeLine.map(([lat, lng]) => L.latLng(lat, lng)));
         if (bounds.isValid()) {
@@ -359,8 +349,8 @@ const InteractiveMapLayer = memo(function InteractiveMapLayer({
         // fitBounds may fail if map is not ready
       }
     });
-    return () => cancelAnimationFrame(raf);
-  }, [routeLine, map]);
+    return () => lifecycle.cancel(raf);
+  }, [routeLine, map, lifecycle]);
 
   useEffect(() => {
     const source = vectorTileBaseUrl?.trim();

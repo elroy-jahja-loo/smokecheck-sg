@@ -30,7 +30,7 @@ export async function GET(request: Request) {
   }, {
     schedule: { type: "crontab", value: "0 2 * * *" },
     checkinMargin: 60,
-    maxRuntime: 30,
+    maxRuntime: 45,
     timezone: "UTC",
   });
   let summaries: Awaited<ReturnType<DataGovSyncService["syncAll"]>>;

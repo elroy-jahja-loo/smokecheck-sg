@@ -4,10 +4,6 @@
     {
       "path": "/api/internal/cron/refresh-onemap-token",
       "schedule": "0 0 */2 * *"
-    },
-    {
-      "path": "/api/internal/sync/datagov",
-      "schedule": "0 2 * * *"
     }
   ],
   "routes": [

@@ -36,7 +36,7 @@ export async function POST(request: Request) {
   }
 
   const submission = parseFeedbackSubmission(await request.json().catch(() => undefined));
-  if (!submission) return appendCorsHeaders(badRequest("Provide feedback and a rating from 1 to 5."), request, corsOptions);
+  if (!submission) return appendCorsHeaders(badRequest("Provide feedback and a rating from 1 to 10."), request, corsOptions);
   if (!hasPostgisConfig()) {
     return appendCorsHeaders(jsonResponse({ error: "unavailable", message: "Feedback is temporarily unavailable." }, { status: 503 }), request, corsOptions);
   }
@@ -79,8 +79,8 @@ async function sendFeedbackEmail(record: FeedbackRecord) {
     body: JSON.stringify({
       from: process.env.RESEND_FROM_EMAIL ?? "SmokeCheck SG <onboarding@resend.dev>",
       to: [feedbackRecipient],
-      subject: `SmokeCheck feedback: ${record.rating}/5`,
-      text: `New SmokeCheck feedback\n\nRating: ${record.rating}/5\n\nFeedback:\n${record.feedback}\n\nComment on rating:\n${record.rating_comment || "(none)"}\n\nSubmitted: ${record.created_at}`,
+      subject: `SmokeCheck feedback: ${record.rating}/10`,
+      text: `New SmokeCheck feedback\n\nRating: ${record.rating}/10\n\nFeedback:\n${record.feedback}\n\nComment on rating:\n${record.rating_comment || "(none)"}\n\nSubmitted: ${record.created_at}`,
     }),
   });
   if (!response.ok) throw new Error("Resend rejected the feedback notification");

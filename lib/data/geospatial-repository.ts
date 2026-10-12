@@ -72,10 +72,12 @@ export class SeedGeospatialRepository implements GeospatialRepository {
   }
 }
 
-class PostgisGeospatialRepository implements GeospatialRepository {
+export class PostgisGeospatialRepository implements GeospatialRepository {
+  constructor(private readonly pool = getPostgisPool()) {}
+
   async getStatusCandidates(lat: number, lng: number) {
     const [areasResult, zonesResult, communityAreasResult, communityZonesResult] = await Promise.all([
-      getPostgisPool().query<{
+      this.pool.query<{
         id: string; building_name: string | null; description: string | null; source_updated_at: string | null;
         source_id: string; distance_m: number; lat: number; lng: number; retrieved_at: Date;
       }>(
@@ -86,7 +88,7 @@ class PostgisGeospatialRepository implements GeospatialRepository {
          limit 20`,
         [lat, lng],
       ),
-      getPostgisPool().query<{
+      this.pool.query<{
         id: string; name: string | null; zone_type: string; source_updated_at: string | null;
         source_id: string; geometry_geojson: ProhibitedZone["geometry"]; retrieved_at: Date;
       }>(
@@ -96,7 +98,7 @@ class PostgisGeospatialRepository implements GeospatialRepository {
          limit 20`,
         [lat, lng],
       ),
-      getPostgisPool().query<{
+      this.pool.query<{
         id: string; name: string; radius_m: number; distance_m: number; lat: number; lng: number;
       }>(
         `with point as (
@@ -116,7 +118,7 @@ class PostgisGeospatialRepository implements GeospatialRepository {
          limit 20`,
         [lat, lng],
       ),
-      getPostgisPool().query<{
+      this.pool.query<{
         id: string; name: string; geometry_geojson: ProhibitedZone["geometry"];
       }>(
         `with point as (
@@ -182,7 +184,7 @@ class PostgisGeospatialRepository implements GeospatialRepository {
   }
 
   async listDesignatedAreas() {
-    const { rows } = await getPostgisPool().query<{
+    const { rows } = await this.pool.query<{
       id: string;
       building_name: string | null;
       description: string | null;
@@ -220,7 +222,7 @@ class PostgisGeospatialRepository implements GeospatialRepository {
   }
 
   async listProhibitedZones() {
-    const { rows } = await getPostgisPool().query<{
+    const { rows } = await this.pool.query<{
       id: string;
       name: string | null;
       zone_type: string;
@@ -256,15 +258,13 @@ class PostgisGeospatialRepository implements GeospatialRepository {
 
   async listMapFeaturesInView(bbox: MapFeatureBbox) {
     const [officialResult, communityResult] = await Promise.all([
-      getPostgisPool().query<{
+      this.pool.query<{
         feature_kind: "designated_area" | "prohibited_zone";
         id: string;
         name: string | null;
         zone_type: string | null;
         source_id: string;
         geometry_geojson: GeoJsonPolygon | GeoJsonMultiPolygon | { type: "Point"; coordinates: [number, number] };
-        centroid_lat: number | null;
-        centroid_lng: number | null;
       }>(
         `select
            feature_kind,
@@ -272,21 +272,17 @@ class PostgisGeospatialRepository implements GeospatialRepository {
            name,
            zone_type,
            source_id,
-           geometry_geojson,
-           case when feature_kind = 'prohibited_zone' then extensions.st_y(extensions.st_centroid(extensions.st_geomfromgeojson(geometry_geojson::text))) else null end as centroid_lat,
-           case when feature_kind = 'prohibited_zone' then extensions.st_x(extensions.st_centroid(extensions.st_geomfromgeojson(geometry_geojson::text))) else null end as centroid_lng
+           geometry_geojson
          from public.map_features_in_view($1, $2, $3, $4)
          limit 250`,
         [bbox.minLat, bbox.minLng, bbox.maxLat, bbox.maxLng],
       ),
-      getPostgisPool().query<{
+      this.pool.query<{
         feature_kind: "designated_area" | "prohibited_zone";
         id: string;
         name: string;
         zone_type: string | null;
         geometry_geojson: GeoJsonPolygon | GeoJsonMultiPolygon | { type: "Point"; coordinates: [number, number] };
-        centroid_lat: number | null;
-        centroid_lng: number | null;
         verified: boolean;
         radius_m: number | null;
       }>(
@@ -299,8 +295,6 @@ class PostgisGeospatialRepository implements GeospatialRepository {
            c.name,
            null::text as zone_type,
            extensions.st_asgeojson(c.location::extensions.geometry)::jsonb as geometry_geojson,
-           null::double precision as centroid_lat,
-           null::double precision as centroid_lng,
            c.verified,
            c.radius_m
          from public.community_designated_areas c
@@ -313,8 +307,6 @@ class PostgisGeospatialRepository implements GeospatialRepository {
            c.name,
            'community_no_smoking_zone'::text as zone_type,
            extensions.st_asgeojson(c.geometry::extensions.geometry)::jsonb as geometry_geojson,
-           extensions.st_y(extensions.st_centroid(c.geometry::extensions.geometry)) as centroid_lat,
-           extensions.st_x(extensions.st_centroid(c.geometry::extensions.geometry)) as centroid_lng,
            c.verified,
            null::double precision as radius_m
          from public.community_prohibited_zones c
@@ -346,7 +338,6 @@ class PostgisGeospatialRepository implements GeospatialRepository {
             sourceId: row.source_id,
             ...(row.zone_type ? { zoneType: row.zone_type } : {}),
             geometry: row.geometry_geojson,
-            ...(row.centroid_lat !== null && row.centroid_lng !== null ? { centroidLat: Number(row.centroid_lat), centroidLng: Number(row.centroid_lng) } : {}),
           };
         }
         return undefined;
@@ -373,7 +364,6 @@ class PostgisGeospatialRepository implements GeospatialRepository {
             sourceId: COMMUNITY_SOURCE_ID,
             zoneType: "community_no_smoking_zone",
             geometry: row.geometry_geojson,
-            ...(row.centroid_lat !== null && row.centroid_lng !== null ? { centroidLat: Number(row.centroid_lat), centroidLng: Number(row.centroid_lng) } : {}),
             verified: row.verified,
           };
         }

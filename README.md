@@ -47,7 +47,7 @@ Public geospatial responses use bounded PostGIS functions instead of loading the
 | Duplicate Data.gov.sg cron | A source-scoped PostgreSQL advisory lock serializes publication. Existing checksums are successful no-ops. Feature IDs are version-scoped. | No action unless overlap persists; inspect scheduler duplication. |
 | Bad Data.gov.sg snapshot | Non-HTTPS/unapproved hosts, redirects, oversized downloads, invalid UTF-8, invalid GeoJSON, and empty datasets are rejected without replacing the active version. | Review the upstream dataset and allow-list changes before retrying. |
 | OneMap token expires or is rejected | A `401/403` invalidates the local token, obtains one refresh lease through Redis, and retries once. A Vercel cron refreshes proactively every two days. | Check OneMap credentials, Redis, and Sentry if refresh fails. |
-| Vercel cron is missed | Vercel cron is best effort; the application records failures but cannot guarantee platform delivery. | Configure Sentry missed-run monitoring and a separately managed QStash/manual recovery schedule. |
+| Scheduled sync is missed | The long-running Data.gov.sg job is scheduled in GitHub Actions and reported to Sentry; the OneMap refresh still uses Vercel cron. | Inspect the Actions run and Sentry monitor; use Actions `workflow_dispatch` to recover the sync. |
 | Sentry or OTLP exporter unavailable | Requests continue and redacted console logs remain available, but centralized telemetry is degraded. | Restore the telemetry integration and verify a test event in a preview deployment. |
 
 No free-tier keep-alive technique guarantees indefinite uptime. For a public release that must not pause, use a paid Supabase plan with backups/PITR and an appropriate SLA, plus an independent external uptime monitor. Do not use frequent health probes to evade provider inactivity policies.
@@ -102,7 +102,10 @@ Use the Supabase transaction pooler intended for serverless workloads for the ru
 `vercel.json` schedules:
 
 - OneMap token refresh every two days.
-- Data.gov.sg synchronization daily at 02:00 UTC.
+
+`.github/workflows/datagov-sync.yml` schedules the long-running Data.gov.sg sync daily at 02:00 UTC. It runs `npm run sync:datagov` outside Vercel's 60-second function limit and sends start/finish check-ins to the `datagov-daily-sync` Sentry monitor. Configure these **GitHub Actions repository secrets** with the same production runtime values as Vercel: `POSTGIS_DATABASE_URL`, `DATAGOV_DSA_DATASET_ID`, `DATAGOV_NSZ_DATASET_ID`, `DATAGOV_NPARKS_NO_SMOKING_DATASET_ID`, `OBJECT_STORAGE_ENDPOINT`, `OBJECT_STORAGE_REGION`, `OBJECT_STORAGE_BUCKET`, `OBJECT_STORAGE_ACCESS_KEY_ID`, `OBJECT_STORAGE_SECRET_ACCESS_KEY`, and `SENTRY_DSN`. Set `DATAGOV_API_KEY` and `POSTGIS_SSL_CA` too if used in production. The job sets `VERCEL_ENV=production` to require verified remote snapshots; keep the DB URL on the serverless/runtime pooler, not an owner/migration connection.
+
+After the workflow is enabled on the default branch, run **Actions → Data.gov.sg Daily Sync → Run workflow** once. Verify all three summaries succeed, the Sentry monitor receives an `ok` check-in, and the matching `sync_runs` rows finish successfully. The workflow has a 55-minute timeout and the SDK requests a 45-minute Sentry maximum runtime; confirm Sentry's monitor is set to `0 2 * * *` UTC, 45-minute maximum runtime, and a 60-minute check-in margin. If the sync needs longer, speed up bulk publication or adjust both timeouts based on measured runtime. The signed/manual HTTP route remains limited to 60 seconds and is not a substitute for the long-running scheduled workflow.
 
 Vercel sends `Authorization: Bearer <CRON_SECRET>` to cron handlers when `CRON_SECRET` is configured. Challenge rules are deliberately not placed on machine-to-machine cron/worker paths because application-layer signatures and secrets already authenticate them.
 
@@ -148,7 +151,7 @@ CI runs the same gates and uploads a CycloneDX SBOM artifact. Before production 
 3. Confirm all Supabase migrations are present and security advisors return no findings.
 4. Confirm `GET /api/health` returns `200`.
 5. Confirm authenticated `GET /api/internal/ready` returns `200` with every check `ok`.
-6. Trigger each cron in preview with the correct bearer secret and verify the corresponding Sentry event/check-in.
+6. Trigger the OneMap cron in preview with the correct bearer secret; dispatch the Data.gov.sg Actions workflow manually in production and verify both corresponding Sentry check-ins.
 7. Verify a OneMap search, reverse geocode, route request, and forced token refresh.
 8. Run one Data.gov.sg sync twice and confirm the second publication is an idempotent success.
 9. Verify QStash rejects an invalid signature and atomically records the audit side effect plus receipt for a valid provider delivery.

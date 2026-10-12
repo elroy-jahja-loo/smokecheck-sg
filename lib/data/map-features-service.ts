@@ -1,6 +1,5 @@
 import { cacheAdapter } from "@/lib/cache/cache-adapter";
 import { geospatialRepository, SeedGeospatialRepository, type MapFeature, type MapFeatureBbox } from "@/lib/data/geospatial-repository";
-import { buildViewportBbox, defaultCenter } from "@/lib/geospatial/viewport-bbox";
 
 export type MapFeaturesLoadResult = {
   features: MapFeature[];
@@ -35,16 +34,4 @@ export async function loadMapFeaturesInView(bbox: MapFeatureBbox): Promise<MapFe
   await cacheAdapter.set(cacheKey, features, { ttlSeconds: 15 * 60 });
   if (!degraded) await cacheAdapter.set(staleCacheKey, features, { ttlSeconds: 24 * 60 * 60 });
   return { features, cacheHit: false, degraded, cacheKey };
-}
-
-function buildInitialViewportBbox() {
-  return buildViewportBbox(defaultCenter);
-}
-
-export async function loadInitialMapFeatures() {
-  try {
-    return (await loadMapFeaturesInView(buildInitialViewportBbox())).features;
-  } catch {
-    return [];
-  }
 }

@@ -1,5 +1,4 @@
 import { featureFlags } from "@/lib/feature-flags";
-import { loadInitialMapFeatures } from "@/lib/data/map-features-service";
 import { readVectorTileManifest } from "@/lib/vector-tiles/manifest";
 import { SearchPageContent } from "./search-page-content";
 import type { Metadata } from "next";
@@ -14,12 +13,10 @@ export const metadata: Metadata = {
 
 export default async function SearchPage() {
   const vectorTileManifest = featureFlags.vectorTileMode === "generated" ? await readVectorTileManifest() : undefined;
-  const initialMapFeatures = await loadInitialMapFeatures();
   return (
     <SearchPageContent
       vectorTileBaseUrl={featureFlags.vectorTileMode === "generated" ? process.env.VECTOR_TILE_BASE_URL : undefined}
       vectorTileLayerName={vectorTileManifest?.layers[0]}
-      initialMapFeatures={initialMapFeatures}
     />
   );
 }

@@ -1,0 +1,41 @@
+name: Data.gov.sg Daily Sync
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: datagov-daily-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    permissions:
+      contents: read
+    env:
+      VERCEL_ENV: production
+      SENTRY_ENVIRONMENT: production
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+      POSTGIS_DATABASE_URL: ${{ secrets.POSTGIS_DATABASE_URL }}
+      POSTGIS_SSL_CA: ${{ secrets.POSTGIS_SSL_CA }}
+      POSTGIS_POOL_SIZE: '1'
+      DATAGOV_DSA_DATASET_ID: ${{ secrets.DATAGOV_DSA_DATASET_ID }}
+      DATAGOV_NSZ_DATASET_ID: ${{ secrets.DATAGOV_NSZ_DATASET_ID }}
+      DATAGOV_NPARKS_NO_SMOKING_DATASET_ID: ${{ secrets.DATAGOV_NPARKS_NO_SMOKING_DATASET_ID }}
+      DATAGOV_API_KEY: ${{ secrets.DATAGOV_API_KEY }}
+      OBJECT_STORAGE_ENDPOINT: ${{ secrets.OBJECT_STORAGE_ENDPOINT }}
+      OBJECT_STORAGE_REGION: ${{ secrets.OBJECT_STORAGE_REGION }}
+      OBJECT_STORAGE_BUCKET: ${{ secrets.OBJECT_STORAGE_BUCKET }}
+      OBJECT_STORAGE_ACCESS_KEY_ID: ${{ secrets.OBJECT_STORAGE_ACCESS_KEY_ID }}
+      OBJECT_STORAGE_SECRET_ACCESS_KEY: ${{ secrets.OBJECT_STORAGE_SECRET_ACCESS_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run sync:datagov
