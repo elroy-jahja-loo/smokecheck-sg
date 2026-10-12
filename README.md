@@ -140,11 +140,13 @@ npm run typecheck
 npm run lint
 npm test
 npm run build
-npm audit
+npm run audit:dependencies
 npm run sbom
 ```
 
 CI runs the same gates and uploads a CycloneDX SBOM artifact. Before production promotion:
+
+The dependency-audit gate runs immediately after installation and rejects all new audit findings, including production dependencies. The sole documented exception is [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) and its exact development-only dependency chain: `braces` has no patched release yet and is pulled in by lint/test tools. The gate checks the advisory URL, dependency chain, and `dev` classification against the lockfile; a new advisory or production path fails CI. Weekly Dependabot updates surface fixes as soon as publishers release them. Raw `npm audit` will continue to report this unpatched development-only advisory until then.
 
 1. Confirm all GitHub checks pass from a clean clone.
 2. Confirm Vercel production environment validation passes without fallback warnings.

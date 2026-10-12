@@ -64,7 +64,7 @@ async function readSnapshotText(storagePath: string) {
   const localPath = toLocalSnapshotFile(storagePath);
   if (!localPath) return "";
   try {
-    const body = await readFile(localPath, "utf8");
+    const body = await readFile(/*turbopackIgnore: true*/ localPath, "utf8");
     return body.slice(0, 8_000);
   } catch {
     return "";

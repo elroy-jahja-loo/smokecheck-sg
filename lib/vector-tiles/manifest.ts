@@ -46,7 +46,7 @@ export function createVectorTileManifest(input: ManifestInput): VectorTileManife
 
 export async function readVectorTileManifest(manifestPath = resolveManifestPath()) {
   try {
-    const raw = await readFile(manifestPath, "utf8");
+    const raw = await readFile(/*turbopackIgnore: true*/ manifestPath, "utf8");
     const parsed = JSON.parse(raw) as Partial<VectorTileManifest>;
     if (!isVectorTileManifest(parsed)) return undefined;
     return parsed;
