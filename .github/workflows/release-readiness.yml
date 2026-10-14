@@ -50,6 +50,6 @@ jobs:
           name: sbom-cyclonedx-${{ github.sha }}
           path: release-assets
       - name: Attach SBOM to GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: release-assets/sbom.cdx.json
