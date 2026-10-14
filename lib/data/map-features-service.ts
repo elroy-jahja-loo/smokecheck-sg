@@ -12,8 +12,8 @@ function mapFeaturesCacheKey(bbox: MapFeatureBbox) {
   return `viewport:v1:${bbox.minLat.toFixed(4)}:${bbox.minLng.toFixed(4)}:${bbox.maxLat.toFixed(4)}:${bbox.maxLng.toFixed(4)}:${bbox.zoom}`;
 }
 
-export async function loadMapFeaturesInView(bbox: MapFeatureBbox, layer: "all" | "designated" = "all"): Promise<MapFeaturesLoadResult> {
-  const cacheKey = `${mapFeaturesCacheKey(bbox)}${layer === "designated" ? ":designated" : ""}`;
+export async function loadMapFeaturesInView(bbox: MapFeatureBbox, layer: "all" | "designated" | "prohibited" = "all"): Promise<MapFeaturesLoadResult> {
+  const cacheKey = `${mapFeaturesCacheKey(bbox)}${layer === "all" ? "" : `:${layer}`}`;
   const staleCacheKey = `${cacheKey}:stale`;
   const cached = await cacheAdapter.get<MapFeature[]>(cacheKey);
   if (cached) {
@@ -25,11 +25,16 @@ export async function loadMapFeaturesInView(bbox: MapFeatureBbox, layer: "all" |
   try {
     features = layer === "designated"
       ? await geospatialRepository.listDesignatedMapFeaturesInView?.(bbox) ?? []
-      : await geospatialRepository.listMapFeaturesInView?.(bbox) ?? [];
+      : layer === "prohibited"
+        ? await geospatialRepository.listProhibitedMapFeaturesInView?.(bbox) ?? []
+        : await geospatialRepository.listMapFeaturesInView?.(bbox) ?? [];
   } catch {
     degraded = true;
+    const seed = new SeedGeospatialRepository();
     features = await cacheAdapter.get<MapFeature[]>(staleCacheKey)
-      ?? await new SeedGeospatialRepository()[layer === "designated" ? "listDesignatedMapFeaturesInView" : "listMapFeaturesInView"](bbox);
+      ?? await (layer === "designated" ? seed.listDesignatedMapFeaturesInView(bbox)
+        : layer === "prohibited" ? seed.listProhibitedMapFeaturesInView(bbox)
+          : seed.listMapFeaturesInView(bbox));
   }
   await cacheAdapter.set(cacheKey, features, { ttlSeconds: 15 * 60 });
   if (!degraded) await cacheAdapter.set(staleCacheKey, features, { ttlSeconds: 24 * 60 * 60 });

@@ -21,9 +21,9 @@ export async function GET(request: Request) {
   const bbox = parseMapFeatureBbox(url.searchParams);
   if (!bbox) return appendCorsHeaders(badRequest("Expected a valid Singapore viewport bbox with minLat, minLng, maxLat, maxLng, and zoom."), request, corsOptions);
   const layer = url.searchParams.get("layer");
-  if (layer && layer !== "designated") return appendCorsHeaders(badRequest("Unknown map layer."), request, corsOptions);
+  if (layer && layer !== "designated" && layer !== "prohibited") return appendCorsHeaders(badRequest("Unknown map layer."), request, corsOptions);
 
-  const result = await loadMapFeaturesInView(bbox, layer === "designated" ? "designated" : "all");
+  const result = await loadMapFeaturesInView(bbox, layer === "designated" || layer === "prohibited" ? layer : "all");
   observeApiRequest("/api/geospatial/map-features", startedAt, { cacheHit: result.cacheHit, count: result.features.length, layer: layer ?? "all" });
   return appendCorsHeaders(jsonResponse({
     features: result.features,

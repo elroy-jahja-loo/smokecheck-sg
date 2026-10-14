@@ -254,7 +254,9 @@ export function LocationStatusChecker({
     if (!bbox) return;
     let cancelled = false;
     let fullLoaded = false;
-    let pointsLoaded = false;
+    let fallbackStarted = false;
+    let designatedFeatures: MapFeature[] | undefined;
+    let prohibitedFeatures: MapFeature[] | undefined;
     if (seededFeaturesRef.current) {
       seededFeaturesRef.current = false;
       initialBboxRef.current = bbox;
@@ -264,23 +266,33 @@ export function LocationStatusChecker({
     }
     if (initialBboxRef.current !== undefined && isSameViewportBbox(bbox, initialBboxRef.current)) return;
     const params = new URLSearchParams(Object.entries(bbox).map(([key, value]) => [key, String(value)]));
-    // Points are small; show official and unverified community areas while the
-    // larger no-smoking outlines are still loading. The full response wins.
-    void fetch(`/api/geospatial/map-features?${params.toString()}&layer=designated`)
-      .then((response) => response.ok ? response.json() as Promise<MapFeaturesResponse> : undefined)
-      .then((payload) => {
-        if (!cancelled && !fullLoaded && payload && Array.isArray(payload.features)) {
-          pointsLoaded = true;
-          setMapFeatures(payload.features);
+    // Load each layer independently; the large outlines no longer wait on a
+    // second full-map query for the smoking-area points already requested.
+    async function loadLayer(layer: "designated" | "prohibited") {
+      try {
+        const response = await fetch(`/api/geospatial/map-features?${params.toString()}&layer=${layer}`);
+        if (!response.ok) throw new Error(tRef.current("map.mapFeaturesUnavailable"));
+        const payload = (await response.json()) as MapFeaturesResponse;
+        if (!Array.isArray(payload.features)) throw new Error("Invalid map features");
+        if (cancelled || fullLoaded) return;
+        if (layer === "designated") designatedFeatures = payload.features;
+        else prohibitedFeatures = payload.features;
+        setMapFeatures([...(designatedFeatures ?? []), ...(prohibitedFeatures ?? [])]);
+        if (designatedFeatures && prohibitedFeatures) setMapNotice(undefined);
+      } catch {
+        // Keep the original endpoint as a fallback if either fast layer fails.
+        if (!cancelled && !fallbackStarted) {
+          fallbackStarted = true;
+          void loadFeatures();
         }
-      })
-      .catch(() => undefined);
-
+      }
+    }
     async function loadFeatures() {
       try {
         const response = await fetch(`/api/geospatial/map-features?${params.toString()}`);
         if (!response.ok) throw new Error(tRef.current("map.mapFeaturesUnavailable"));
         const payload = (await response.json()) as MapFeaturesResponse;
+        if (!Array.isArray(payload.features)) throw new Error("Invalid map features");
         if (!cancelled) {
           fullLoaded = true;
           setMapFeatures(payload.features);
@@ -288,12 +300,13 @@ export function LocationStatusChecker({
         }
       } catch {
         if (!cancelled) {
-          if (!pointsLoaded) setMapFeatures([]);
+          if (!designatedFeatures && !prohibitedFeatures) setMapFeatures([]);
           setMapNotice(tRef.current("map.mapOverlayNote"));
         }
       }
     }
-    void loadFeatures();
+    void loadLayer("designated");
+    void loadLayer("prohibited");
     return () => {
       cancelled = true;
     };

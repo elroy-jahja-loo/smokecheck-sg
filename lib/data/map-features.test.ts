@@ -36,4 +36,8 @@ test("map feature responses are viewport-bounded and omit raw Data.gov propertie
     await repository.listDesignatedMapFeaturesInView(bbox),
     features.filter((feature) => feature.kind === "designated-area"),
   );
+  assert.deepEqual(
+    await repository.listProhibitedMapFeaturesInView(bbox),
+    features.filter((feature) => feature.kind === "prohibited-zone"),
+  );
 });
