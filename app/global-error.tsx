@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/nextjs";
 import { useEffect, useState } from "react";
 import englishMessages from "@/lib/i18n/translations/en.json";
 import type { SupportedLocale } from "@/lib/i18n/i18n-provider";
+import { getBrowserStorageItem } from "@/lib/browser-storage";
 
 export default function GlobalError({
   error,
@@ -24,8 +25,8 @@ export default function GlobalError({
   }, [error]);
 
   useEffect(() => {
-    const locale = window.localStorage.getItem("smokecheck:locale") as SupportedLocale | null;
-    if (!locale || locale === "en") return;
+    const locale = getBrowserStorageItem("smokecheck:locale") as SupportedLocale | null;
+    if (!locale || !["zh", "ms", "ta"].includes(locale)) return;
     void import(`@/lib/i18n/translations/${locale}.json`).then((module) => setMessages(module.default ?? module));
   }, []);
 

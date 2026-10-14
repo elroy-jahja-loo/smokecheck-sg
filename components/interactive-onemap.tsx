@@ -276,7 +276,10 @@ const InteractiveMapLayer = memo(function InteractiveMapLayer({
   }, [map]);
 
   useEffect(() => {
-    const frame = lifecycle.schedule(() => map.invalidateSize());
+    const frame = lifecycle.schedule(() => {
+      map.invalidateSize();
+      emitViewport(map);
+    });
     const timer = window.setTimeout(() => {
       if (lifecycle.isActive()) map.invalidateSize();
     }, 250);
@@ -287,7 +290,7 @@ const InteractiveMapLayer = memo(function InteractiveMapLayer({
         window.clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [map, lifecycle]);
+  }, [map, lifecycle, emitViewport]);
 
   useEffect(() => {
     if (!autoFocusKey || previousSelectedKey.current === autoFocusKey) {

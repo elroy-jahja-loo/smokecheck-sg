@@ -12,8 +12,8 @@ function mapFeaturesCacheKey(bbox: MapFeatureBbox) {
   return `viewport:v1:${bbox.minLat.toFixed(4)}:${bbox.minLng.toFixed(4)}:${bbox.maxLat.toFixed(4)}:${bbox.maxLng.toFixed(4)}:${bbox.zoom}`;
 }
 
-export async function loadMapFeaturesInView(bbox: MapFeatureBbox): Promise<MapFeaturesLoadResult> {
-  const cacheKey = mapFeaturesCacheKey(bbox);
+export async function loadMapFeaturesInView(bbox: MapFeatureBbox, layer: "all" | "designated" = "all"): Promise<MapFeaturesLoadResult> {
+  const cacheKey = `${mapFeaturesCacheKey(bbox)}${layer === "designated" ? ":designated" : ""}`;
   const staleCacheKey = `${cacheKey}:stale`;
   const cached = await cacheAdapter.get<MapFeature[]>(cacheKey);
   if (cached) {
@@ -23,13 +23,13 @@ export async function loadMapFeaturesInView(bbox: MapFeatureBbox): Promise<MapFe
   let degraded = false;
   let features: MapFeature[];
   try {
-    features = geospatialRepository.listMapFeaturesInView
-      ? await geospatialRepository.listMapFeaturesInView(bbox)
-      : [];
+    features = layer === "designated"
+      ? await geospatialRepository.listDesignatedMapFeaturesInView?.(bbox) ?? []
+      : await geospatialRepository.listMapFeaturesInView?.(bbox) ?? [];
   } catch {
     degraded = true;
     features = await cacheAdapter.get<MapFeature[]>(staleCacheKey)
-      ?? await new SeedGeospatialRepository().listMapFeaturesInView(bbox);
+      ?? await new SeedGeospatialRepository()[layer === "designated" ? "listDesignatedMapFeaturesInView" : "listMapFeaturesInView"](bbox);
   }
   await cacheAdapter.set(cacheKey, features, { ttlSeconds: 15 * 60 });
   if (!degraded) await cacheAdapter.set(staleCacheKey, features, { ttlSeconds: 24 * 60 * 60 });

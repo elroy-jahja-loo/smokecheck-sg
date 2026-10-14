@@ -18,16 +18,22 @@ test("map feature bbox validation rejects invalid or over-broad viewport request
 });
 
 test("map feature responses are viewport-bounded and omit raw Data.gov properties", async () => {
-  const features = await new SeedGeospatialRepository().listMapFeaturesInView({
+  const bbox = {
     minLat: 1.29,
     minLng: 103.82,
     maxLat: 1.31,
     maxLng: 103.84,
     zoom: 14,
-  });
+  };
+  const repository = new SeedGeospatialRepository();
+  const features = await repository.listMapFeaturesInView(bbox);
 
   assert.ok(features.length > 0);
   assert.ok(features.every((feature) => !("raw_properties" in feature) && !("rawProperties" in feature)));
   assert.ok(features.some((feature) => feature.kind === "designated-area"));
   assert.ok(features.some((feature) => feature.kind === "prohibited-zone" && feature.geometry));
+  assert.deepEqual(
+    await repository.listDesignatedMapFeaturesInView(bbox),
+    features.filter((feature) => feature.kind === "designated-area"),
+  );
 });

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n/i18n-provider";
+import { getBrowserStorageItem, setBrowserStorageItem } from "@/lib/browser-storage";
 
 const storageKey = "smokecheck:text-scale";
 const textScales = [
@@ -17,8 +18,7 @@ export function AccessibilityControls() {
   const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [scale, setScale] = useState<TextScale>(() => {
-    if (typeof window === "undefined") return "standard";
-    const saved = window.localStorage.getItem(storageKey) as TextScale | null;
+    const saved = getBrowserStorageItem(storageKey) as TextScale | null;
     return saved && textScales.some((entry) => entry.value === saved) ? saved : "standard";
   });
 
@@ -33,7 +33,7 @@ export function AccessibilityControls() {
     }
     const selected = textScales.find((entry) => entry.value === scale);
     if (selected?.className) document.documentElement.classList.add(selected.className);
-    window.localStorage.setItem(storageKey, scale);
+    setBrowserStorageItem(storageKey, scale);
   }, [scale]);
 
   const scaleLabels: Record<TextScale, string> = {

@@ -13,6 +13,7 @@
     "check:dependencies": "node scripts/check-dependency-versions.mjs",
     "typecheck": "tsc --noEmit",
     "test": "tsc --project tsconfig.test.json && tsc-alias --project tsconfig.test.json && node --test .test-build/lib/*.test.js .test-build/lib/**/*.test.js scripts/*.test.mjs",
+    "test:e2e": "playwright test",
     "verify:postcss-override": "npm run audit:dependencies && npm ls postcss",
     "audit:dependencies": "tsx scripts/check-dependency-audit.ts",
     "acceptance:report": "node scripts/generate-acceptance-report.mjs",
@@ -63,6 +64,7 @@
     "postcss": "$postcss"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.0",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^22.20.1",
     "@types/opossum": "^8.1.9",

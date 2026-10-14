@@ -14,7 +14,7 @@ import type { DesignatedArea, LocationResult, SourceMetadata } from "@/lib/types
 import type { BottomSheetSnapState } from "@/lib/ui/bottom-sheet-snap";
 import { getResultPanelVisibility } from "@/lib/ui/result-panel-visibility";
 import { type CachedRulesPayload, getNearestDesignatedAreas } from "@/lib/data/rules-cache";
-import { buildViewportBbox, defaultCenter, isSameViewportBbox, type ViewportBbox } from "@/lib/geospatial/viewport-bbox";
+import { defaultCenter, isSameViewportBbox, type ViewportBbox } from "@/lib/geospatial/viewport-bbox";
 import { isSingaporeCoordinate } from "@/lib/onemap/onemap-validation";
 
 const InteractiveOneMap = dynamic(
@@ -142,7 +142,7 @@ export function LocationStatusChecker({
   const [error, setError] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [shareStatus, setShareStatus] = useState<string | undefined>();
-  const [mapView, setMapView] = useState<ViewportBbox>(() => buildViewportBbox(defaultCenter));
+  const [mapView, setMapView] = useState<ViewportBbox | undefined>();
   const [mapAutoFocusKey, setMapAutoFocusKey] = useState<string | undefined>();
   const [offlineMode, setOfflineMode] = useState(false);
   const [cachedRules, setCachedRules] = useState<Awaited<ReturnType<typeof import("@/lib/data/rules-cache").getCachedRules>> | undefined>();
@@ -159,7 +159,7 @@ export function LocationStatusChecker({
   const bbox = mapView;
   const showRouteAction = Boolean(result?.nearestDesignatedArea);
   const updateMapView = useCallback((nextView: ViewportBbox) => {
-    setMapView((currentView) => isSameViewportBbox(currentView, nextView) ? currentView : nextView);
+    setMapView((currentView) => currentView && isSameViewportBbox(currentView, nextView) ? currentView : nextView);
   }, []);
 
   async function selectMapPoint(lat: number, lng: number) {
@@ -250,7 +250,11 @@ export function LocationStatusChecker({
   const initialBboxRef = useRef<ViewportBbox | undefined>(undefined);
 
   useEffect(() => {
+    // Wait for the real, sized map viewport instead of fetching a guessed area first.
+    if (!bbox) return;
     let cancelled = false;
+    let fullLoaded = false;
+    let pointsLoaded = false;
     if (seededFeaturesRef.current) {
       seededFeaturesRef.current = false;
       initialBboxRef.current = bbox;
@@ -259,19 +263,32 @@ export function LocationStatusChecker({
       };
     }
     if (initialBboxRef.current !== undefined && isSameViewportBbox(bbox, initialBboxRef.current)) return;
+    const params = new URLSearchParams(Object.entries(bbox).map(([key, value]) => [key, String(value)]));
+    // Points are small; show official and unverified community areas while the
+    // larger no-smoking outlines are still loading. The full response wins.
+    void fetch(`/api/geospatial/map-features?${params.toString()}&layer=designated`)
+      .then((response) => response.ok ? response.json() as Promise<MapFeaturesResponse> : undefined)
+      .then((payload) => {
+        if (!cancelled && !fullLoaded && payload && Array.isArray(payload.features)) {
+          pointsLoaded = true;
+          setMapFeatures(payload.features);
+        }
+      })
+      .catch(() => undefined);
+
     async function loadFeatures() {
       try {
-        const params = new URLSearchParams(Object.entries(bbox).map(([key, value]) => [key, String(value)]));
         const response = await fetch(`/api/geospatial/map-features?${params.toString()}`);
         if (!response.ok) throw new Error(tRef.current("map.mapFeaturesUnavailable"));
         const payload = (await response.json()) as MapFeaturesResponse;
         if (!cancelled) {
+          fullLoaded = true;
           setMapFeatures(payload.features);
           setMapNotice(undefined);
         }
       } catch {
         if (!cancelled) {
-          setMapFeatures([]);
+          if (!pointsLoaded) setMapFeatures([]);
           setMapNotice(tRef.current("map.mapOverlayNote"));
         }
       }

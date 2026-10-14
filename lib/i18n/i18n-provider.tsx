@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import englishMessages from "@/lib/i18n/translations/en.json";
+import { getBrowserStorageItem, setBrowserStorageItem } from "@/lib/browser-storage";
 
 export type SupportedLocale = "en" | "zh" | "ms" | "ta";
 
@@ -49,7 +50,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [messages, setMessages] = useState<Record<string, unknown>>(defaultMessages);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(STORAGE_KEY) as SupportedLocale | null;
+    const saved = getBrowserStorageItem(STORAGE_KEY) as SupportedLocale | null;
     if (saved && saved in localeMeta) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- restore browser preference after the matching server/client render
       setLocaleState(saved);
@@ -73,7 +74,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const setLocale = useCallback((newLocale: SupportedLocale) => {
     setLocaleState(newLocale);
-    window.localStorage.setItem(STORAGE_KEY, newLocale);
+    setBrowserStorageItem(STORAGE_KEY, newLocale);
   }, []);
 
   const t = useCallback((key: string, defaultValue?: string) => {

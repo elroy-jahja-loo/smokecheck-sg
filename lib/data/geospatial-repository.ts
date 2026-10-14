@@ -8,6 +8,7 @@ export interface GeospatialRepository {
   listProhibitedZones(): Promise<ProhibitedZone[]>;
   getStatusCandidates?(lat: number, lng: number): Promise<{ designatedAreas: DesignatedArea[]; prohibitedZones: ProhibitedZone[] }>;
   listMapFeaturesInView?(bbox: MapFeatureBbox): Promise<MapFeature[]>;
+  listDesignatedMapFeaturesInView?(bbox: MapFeatureBbox): Promise<MapFeature[]>;
 }
 
 export type MapFeatureBbox = {
@@ -70,10 +71,49 @@ export class SeedGeospatialRepository implements GeospatialRepository {
 
     return [...areaFeatures, ...zoneFeatures];
   }
+
+  async listDesignatedMapFeaturesInView(bbox: MapFeatureBbox) {
+    return (await this.listMapFeaturesInView(bbox)).filter((feature) => feature.kind === "designated-area");
+  }
 }
 
 export class PostgisGeospatialRepository implements GeospatialRepository {
   constructor(private readonly pool = getPostgisPool()) {}
+
+  async listDesignatedMapFeaturesInView(bbox: MapFeatureBbox): Promise<MapFeature[]> {
+    const [official, community] = await Promise.all([
+      this.pool.query<{ id: string; name: string; source_id: string; lat: number; lng: number }>(
+        `select da.id, coalesce(da.building_name, da.description, 'Designated smoking area') as name,
+                dv.source_id,
+                extensions.st_y(da.location::extensions.geometry) as lat,
+                extensions.st_x(da.location::extensions.geometry) as lng
+         from public.designated_areas da
+         join public.dataset_versions dv on dv.id = da.dataset_version_id and dv.is_active
+         where extensions.st_intersects(da.location, extensions.st_makeenvelope($2, $1, $4, $3, 4326)::extensions.geography)
+         limit 250`,
+        [bbox.minLat, bbox.minLng, bbox.maxLat, bbox.maxLng],
+      ),
+      this.pool.query<{ id: string; name: string; verified: boolean; radius_m: number; lat: number; lng: number }>(
+        `select c.id, c.name, c.verified, c.radius_m,
+                extensions.st_y(c.location::extensions.geometry) as lat,
+                extensions.st_x(c.location::extensions.geometry) as lng
+         from public.community_designated_areas c
+         where extensions.st_intersects(c.location, extensions.st_makeenvelope($2, $1, $4, $3, 4326)::extensions.geography)
+         limit 250`,
+        [bbox.minLat, bbox.minLng, bbox.maxLat, bbox.maxLng],
+      ),
+    ]);
+    return [
+      ...official.rows.map((row) => ({
+        id: row.id, kind: "designated-area" as const, name: row.name, sourceId: row.source_id,
+        lat: Number(row.lat), lng: Number(row.lng),
+      })),
+      ...community.rows.map((row) => ({
+        id: `community-${row.id}`, kind: "designated-area" as const, name: row.name, sourceId: COMMUNITY_SOURCE_ID,
+        lat: Number(row.lat), lng: Number(row.lng), verified: row.verified, radiusM: Number(row.radius_m ?? 10),
+      })),
+    ];
+  }
 
   async getStatusCandidates(lat: number, lng: number) {
     const [areasResult, zonesResult, communityAreasResult, communityZonesResult] = await Promise.all([
