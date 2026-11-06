@@ -80,6 +80,10 @@ The default local mode uses seed geospatial data. Mock officer screens are for l
 
 Dependency installs use the committed `package-lock.json`: GitHub Actions and both Dockerfiles run `npm ci`, and `vercel.json` runs the same clean install. Before installation, CI and Vercel run `npm run check:dependencies` to require matching pinned `react`/`react-dom` and `next`/`eslint-config-next` versions and a matching lockfile. Update each pair together using `npm install`, then commit both `package.json` and `package-lock.json`. Dependabot groups these pairs for future update PRs; an existing PR created under an older grouping must be recreated before it will include its missing peer.
 
+The `glob@13` and `minimatch@10` overrides select patched releases (`14.0.2` and `11.0.1`) while Sentry's bundler plugins and TypeScript ESLint still request vulnerable major versions. Keep these scoped overrides until upstream dependencies adopt patched releases, then remove them only after a clean install, audit, lint, build and browser tests pass.
+
+SBOM generation uses npm's `--package-lock-only` mode to describe the full reproducible application and build dependency tree, including patched overrides. npm 10's installed-tree SBOM mode can incorrectly reject cross-major overrides as invalid, and its `--omit=dev` selector can omit runtime packages also used by lint tools (such as Zod). CI still performs `npm ci` and the full dependency audit first; the SBOM regression test checks locked versions, every direct runtime dependency, and the Sentry-to-glob dependency edge.
+
 ## Required Vercel Setup
 
 Configure secrets in Vercel project settings, never in Git. Production validation requires coherent values for these groups:
@@ -148,7 +152,7 @@ npm run sbom
 
 CI runs the same gates and uploads a CycloneDX SBOM artifact. Before production promotion:
 
-The dependency-audit gate runs immediately after installation and rejects all new audit findings, including production dependencies. The sole documented exception is [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) and its exact development-only dependency chain: `braces` has no patched release yet and is pulled in by lint/test tools. The gate checks the advisory URL, dependency chain, and `dev` classification against the lockfile; a new advisory or production path fails CI. Weekly Dependabot updates surface fixes as soon as publishers release them. Raw `npm audit` will continue to report this unpatched development-only advisory until then.
+The dependency-audit gate runs immediately after installation and rejects all new audit findings, including production dependencies. The current lockfile passes raw `npm audit` with zero reported vulnerabilities. The gate retains one historical exception for [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) and its exact development-only dependency chain, if it is reported again. It checks the advisory URL, dependency chain, and `dev` classification against the lockfile; a new advisory or production path fails CI. Weekly Dependabot updates surface fixes as soon as publishers release them.
 
 1. Confirm all GitHub checks pass from a clean clone.
 2. Confirm Vercel production environment validation passes without fallback warnings.
