@@ -11,13 +11,12 @@ if (!dsn) {
 
     tracesSampler: (context) => {
       if (context.request?.url?.includes("/api/health")) return 0;
-      if (context.request?.url?.includes("/api/")) return 0.5;
-      return 0.1;
+      return 0.05;
     },
 
     tracePropagationTargets: ["localhost", appOrigin],
 
-    profilesSampleRate: 0.1,
+    profilesSampleRate: 0,
 
     environment: process.env.SENTRY_ENVIRONMENT || process.env.NODE_ENV || "development",
 

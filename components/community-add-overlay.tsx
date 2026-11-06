@@ -96,14 +96,15 @@ export function CommunityAddOverlay({ open, onClose, vectorTileBaseUrl, vectorTi
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
+    const controller = new AbortController();
     const params = new URLSearchParams(Object.entries(mapView).map(([key, value]) => [key, String(value)]));
-    fetch(`/api/geospatial/map-features?${params.toString()}`)
+    fetch(`/api/geospatial/map-features?${params.toString()}`, { signal: controller.signal })
       .then((response) => (response.ok ? response.json() : undefined))
       .then((payload: { features?: MapFeature[] } | undefined) => {
         if (!cancelled && payload?.features) setFeatures(payload.features);
       })
       .catch(() => undefined);
-    return () => { cancelled = true; };
+    return () => { cancelled = true; controller.abort(); };
   }, [open, mapView]);
 
   const handleMapClick = useCallback((lat: number, lng: number) => {

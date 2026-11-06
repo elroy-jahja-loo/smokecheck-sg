@@ -265,12 +265,13 @@ export function LocationStatusChecker({
       };
     }
     if (initialBboxRef.current !== undefined && isSameViewportBbox(bbox, initialBboxRef.current)) return;
+    const controller = new AbortController();
     const params = new URLSearchParams(Object.entries(bbox).map(([key, value]) => [key, String(value)]));
     // Load each layer independently; the large outlines no longer wait on a
     // second full-map query for the smoking-area points already requested.
     async function loadLayer(layer: "designated" | "prohibited") {
       try {
-        const response = await fetch(`/api/geospatial/map-features?${params.toString()}&layer=${layer}`);
+        const response = await fetch(`/api/geospatial/map-features?${params.toString()}&layer=${layer}`, { signal: controller.signal });
         if (!response.ok) throw new Error(tRef.current("map.mapFeaturesUnavailable"));
         const payload = (await response.json()) as MapFeaturesResponse;
         if (!Array.isArray(payload.features)) throw new Error("Invalid map features");
@@ -289,7 +290,7 @@ export function LocationStatusChecker({
     }
     async function loadFeatures() {
       try {
-        const response = await fetch(`/api/geospatial/map-features?${params.toString()}`);
+        const response = await fetch(`/api/geospatial/map-features?${params.toString()}`, { signal: controller.signal });
         if (!response.ok) throw new Error(tRef.current("map.mapFeaturesUnavailable"));
         const payload = (await response.json()) as MapFeaturesResponse;
         if (!Array.isArray(payload.features)) throw new Error("Invalid map features");
@@ -309,6 +310,7 @@ export function LocationStatusChecker({
     void loadLayer("prohibited");
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [bbox, vectorTileBaseUrl]);
 

@@ -14,14 +14,11 @@ if (!dsn) {
 
     integrations: [Sentry.replayIntegration()],
 
-    tracesSampler: (context) => {
-      if (context.request?.url?.includes("/api/")) return 0.5;
-      return 0.1;
-    },
+    tracesSampleRate: 0.05,
 
     tracePropagationTargets: ["localhost", appOrigin],
 
-    profilesSampleRate: 0.1,
+    profilesSampleRate: 0,
 
     environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT || process.env.NODE_ENV || "development",
 
@@ -29,7 +26,7 @@ if (!dsn) {
 
     enableLogs: true,
 
-    replaysSessionSampleRate: 0.1,
+    replaysSessionSampleRate: 0.01,
 
     replaysOnErrorSampleRate: 1.0,
 

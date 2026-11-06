@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { buildContentSecurityPolicy } from "@/lib/security-headers";
 
 const internalSecretHeader = "x-smokecheck-internal-secret";
 
@@ -83,21 +84,7 @@ function isInternalCron(pathname: string) {
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const contentSecurityPolicy = [
-    "default-src 'self'",
-    "base-uri 'self'",
-    "form-action 'self' https://form.gov.sg",
-    "frame-ancestors 'none'",
-    "frame-src 'self' https://challenges.cloudflare.com",
-    "object-src 'none'",
-    `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: https://www.onemap.gov.sg",
-    "font-src 'self' data:",
-    "connect-src 'self'",
-    "worker-src 'self' blob:",
-    "upgrade-insecure-requests",
-  ].join("; ");
+  const contentSecurityPolicy = buildContentSecurityPolicy();
   const response = NextResponse.next();
   const requestId = crypto.randomUUID();
 
@@ -173,13 +160,6 @@ export function proxy(request: NextRequest) {
     response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
   }
 
-  if (pathname === "/") {
-    response.headers.set(
-      "Cache-Control",
-      "public, s-maxage=300, stale-while-revalidate=60",
-    );
-  }
-
   if (process.env.VERCEL_ENV !== "production") {
     response.headers.set("X-Robots-Tag", "noindex, nofollow");
   }
@@ -189,6 +169,11 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|monitoring|.*\\.(?:png|svg|jpg|jpeg|gif|webp|ico|woff2?|ttf|eot)$).*)",
+    // Static/public pages get security headers from next.config.ts, without
+    // invoking this function. The public map handler already owns CORS and
+    // rate limits, so it does not need a second function execution either.
+    "/api/((?!geospatial/map-features/?$).*)",
+    "/ops/dashboard/:path*",
+    "/ops/admin/:path*",
   ],
 };

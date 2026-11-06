@@ -1,26 +1,11 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
-
-const isDevelopment = process.env.NODE_ENV === "development";
+import { buildContentSecurityPolicy } from "./lib/security-headers";
 
 const securityHeaders = [
   {
     key: "Content-Security-Policy",
-    value: [
-      "default-src 'self'",
-      "base-uri 'self'",
-      "form-action 'self' https://form.gov.sg",
-      "frame-ancestors 'none'",
-      "frame-src 'self' https://challenges.cloudflare.com",
-      "object-src 'none'",
-      `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com${isDevelopment ? " 'unsafe-eval'" : ""}`,
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://www.onemap.gov.sg",
-      "font-src 'self' data:",
-      "connect-src 'self'",
-      "worker-src 'self' blob:",
-      "upgrade-insecure-requests",
-    ].join("; "),
+    value: buildContentSecurityPolicy(),
   },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
@@ -32,6 +17,7 @@ const securityHeaders = [
   },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+  ...(process.env.VERCEL_ENV !== "production" ? [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] : []),
 ];
 
 const nextConfig: NextConfig = {
@@ -115,11 +101,8 @@ export default withSentryConfig(nextConfig, {
   // Upload a larger set of source maps for prettier stack traces (increases build time)
   widenClientFileUpload: true,
 
-  // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
-  // This can increase your server load as well as your hosting bill.
-  // Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
-  // side errors will fail.
-  tunnelRoute: "/monitoring",
+  // Send browser telemetry directly to Sentry instead of spending Vercel CPU
+  // proxying envelopes through /monitoring. CSP permits only the DSN's origin.
 
   webpack: {
     // Tree-shaking options for reducing bundle size

@@ -1,24 +1,21 @@
+import { Suspense } from "react";
 import { featureFlags } from "@/lib/feature-flags";
 import { readVectorTileManifest } from "@/lib/vector-tiles/manifest";
 import { HomePageContent } from "./home-page-content";
+import { HomePageQuery } from "./home-page-query";
 
-type HomeProps = {
-  searchParams: Promise<{ signage?: string; lat?: string; lng?: string; q?: string }>;
-};
-
-export default async function Home({ searchParams }: HomeProps) {
-  const params = await searchParams;
-  const signageMode = params.signage === "1" || params.signage === "true";
+export default async function Home() {
   const vectorTileManifest = featureFlags.vectorTileMode === "generated" ? await readVectorTileManifest() : undefined;
+  const mapProps = {
+    vectorTileBaseUrl: featureFlags.vectorTileMode === "generated" ? process.env.VECTOR_TILE_BASE_URL : undefined,
+    vectorTileLayerName: vectorTileManifest?.layers[0],
+  };
 
   return (
-    <HomePageContent
-      signageMode={signageMode}
-      initialQuery={params.q}
-      initialLat={params.lat}
-      initialLng={params.lng}
-      vectorTileBaseUrl={featureFlags.vectorTileMode === "generated" ? process.env.VECTOR_TILE_BASE_URL : undefined}
-      vectorTileLayerName={vectorTileManifest?.layers[0]}
-    />
+    // Keep the homepage statically rendered, including useful HTML for crawlers.
+    // Shared coordinates and signage settings are applied only in the browser.
+    <Suspense fallback={<HomePageContent signageMode={false} {...mapProps} />}>
+      <HomePageQuery {...mapProps} />
+    </Suspense>
   );
 }
